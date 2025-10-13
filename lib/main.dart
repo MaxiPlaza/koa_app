@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:koa_app/core/theme/app_theme.dart';
-import 'package:koa_app/core/theme/colors.dart';
 
 // Providers
-import 'package:koa_app/core/providers/theme_provider.dart';
-import 'package:koa_app/core/providers/auth_provider.dart';
-import 'package:koa_app/core/providers/child_provider.dart';
-import 'package:koa_app/core/providers/ai_provider.dart';
-import 'package:koa_app/core/providers/payment_provider.dart';
-import 'package:koa_app/core/providers/routine_provider.dart';
+import 'package:koa_app/presentation/providers/theme_provider.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/presentation/providers/child_provider.dart';
+import 'package:koa_app/presentation/providers/ai_provider.dart';
+import 'package:koa_app/presentation/providers/payment_provider.dart';
+import 'package:koa_app/presentation/providers/routine_provider.dart';
 
 // Screens
 import 'package:koa_app/presentation/screens/common/splash_screen.dart';
@@ -26,7 +25,7 @@ import 'package:koa_app/presentation/screens/child/emotional_game_screen.dart';
 import 'package:koa_app/presentation/screens/child/pattern_game_screen.dart';
 import 'package:koa_app/presentation/screens/child/routines_screen.dart';
 import 'package:koa_app/presentation/screens/child/routine_detail_screen.dart';
-import 'package:koa_app/presentation/screens/child/add_edit_routine_screen.dart';
+import 'package:koa_app/presentation/screens/common/add_edit_routine_screen.dart';
 
 // Parent Screens
 import 'package:koa_app/presentation/screens/parent/parent_dashboard.dart';
@@ -42,20 +41,36 @@ import 'package:koa_app/presentation/screens/professional/student_management.dar
 import 'package:koa_app/presentation/screens/common/settings_screen.dart';
 import 'package:koa_app/presentation/screens/subscription/subscription_screen.dart';
 
-// Firebase Options (generado automáticamente)
-// import 'firebase_options.dart';
+// Services
+import 'package:koa_app/core/services/mercado_pago_service.dart';
+import 'package:koa_app/core/services/payment_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform, // Descomenta cuando tengas firebase_options.dart
+      // options: DefaultFirebaseOptions.currentPlatform,
     );
     print('✅ Firebase inicializado correctamente');
   } catch (e) {
     print('❌ Error inicializando Firebase: $e');
   }
+
+  // 🔐 CONFIGURACIÓN DE CREDENCIALES - REEMPLAZA CON TUS CREDENCIALES REALES
+  const String accessToken =
+      'APP_USR-7255591479184386-101309-dfab2f93f4c50a5b0be7afad89a433d6-1309579932';
+  const String publicKey = 'APP_USR-64000b7d-62ec-4fc2-b131-696a7943bd27';
+
+  // Configurar servicios de pago
+  MercadoPagoService.configure(accessToken: accessToken, publicKey: publicKey);
+
+  PaymentService.configure(accessToken: accessToken, publicKey: publicKey);
+
+  // Inicializar servicios
+  await PaymentService.initialize();
+
+  print('💰 Servicios de pago configurados correctamente');
 
   runApp(const MyApp());
 }
@@ -77,9 +92,10 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'KOVA - Aprendizaje Neuroinclusivo',
+            title: 'KOA - Aprendizaje Neuroinclusivo',
             theme: themeProvider.currentTheme,
             debugShowCheckedModeBanner: false,
+            navigatorKey: AppNavigator.navigatorKey,
             home: const SplashScreen(),
 
             // 🎯 RUTAS COMPLETAS ACTUALIZADAS
@@ -115,10 +131,9 @@ class MyApp extends StatelessWidget {
               '/subscription': (context) => const SubscriptionScreen(),
             },
 
-            // 🚀 RUTA INICIAL
             initialRoute: '/splash',
 
-            // 🎨 CONFIGURACIONES ADICIONALES MEJORADAS CON ACCESIBILIDAD
+            // 🎨 CONFIGURACIONES ADICIONALES
             builder: (context, child) {
               final themeProvider = Provider.of<ThemeProvider>(
                 context,
@@ -127,12 +142,10 @@ class MyApp extends StatelessWidget {
 
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
-                  // Asegurar buen escalado de texto para accesibilidad
                   textScaleFactor: MediaQuery.of(
                     context,
                   ).textScaleFactor.clamp(0.8, 1.3),
-                  // Asegurar tamaño mínimo de toque para accesibilidad
-                  alwaysUse24HourFormat: true, // Formato de tiempo consistente
+                  alwaysUse24HourFormat: true,
                 ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -146,9 +159,52 @@ class MyApp extends StatelessWidget {
               );
             },
 
-            // 🏠 Página 404 personalizada
+            // 🔗 MANEJO DE DEEP LINKS PARA MERCADO PAGO
             onGenerateRoute: (settings) {
-              // Manejar rutas con parámetros
+              // Manejar deep links de Mercado Pago
+              if (settings.name != null &&
+                  settings.name!.startsWith('koa://payment/')) {
+                final uri = Uri.parse(settings.name!);
+                print('🔗 Deep link recibido: $uri');
+
+                // Obtener providers necesarios
+                final paymentProvider = Provider.of<PaymentProvider>(
+                  AppNavigator.navigatorKey.currentContext!,
+                  listen: false,
+                );
+
+                final authProvider = Provider.of<AuthProvider>(
+                  AppNavigator.navigatorKey.currentContext!,
+                  listen: false,
+                );
+
+                // Manejar el retorno del pago
+                paymentProvider.handlePaymentReturn(uri);
+
+                // Si hay usuario logueado, sincronizar suscripción
+                if (authProvider.currentUser != null) {
+                  final user = authProvider.currentUser!;
+                  PaymentService.syncUserSubscription(user.uid);
+                }
+
+                // Mostrar mensaje al usuario
+                ScaffoldMessenger.of(
+                  AppNavigator.navigatorKey.currentContext!,
+                ).showSnackBar(
+                  const SnackBar(
+                    content: Text('Procesando resultado del pago...'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+
+                // Navegar de vuelta a la pantalla de suscripción
+                return MaterialPageRoute(
+                  builder: (context) => const SubscriptionScreen(),
+                );
+              }
+
+              // ... resto del código de onGenerateRoute (igual que antes)
+              // Manejar rutas con parámetros existentes
               if (settings.name == '/routine_detail' &&
                   settings.arguments != null) {
                 final arguments = settings.arguments as Map<String, dynamic>;
@@ -260,7 +316,7 @@ class MyApp extends StatelessWidget {
               );
             },
 
-            // 🔧 Manejo de rutas no implementadas
+            // ... resto de configuraciones (igual que antes)
             onUnknownRoute: (settings) {
               return MaterialPageRoute(
                 builder: (context) => Scaffold(
@@ -320,21 +376,14 @@ class MyApp extends StatelessWidget {
               );
             },
 
-            // 🎭 Configuración de rendimiento
             showPerformanceOverlay: false,
             checkerboardRasterCacheImages: false,
             checkerboardOffscreenLayers: false,
             showSemanticsDebugger: false,
             debugShowMaterialGrid: false,
 
-            // 🎪 Configuración de localización
             locale: const Locale('es', 'ES'),
             supportedLocales: const [Locale('es', 'ES')],
-            localizationsDelegates: const [
-              // Agrega aquí tus delegados de localización si los tienes
-              // DefaultMaterialLocalizations.delegate,
-              // DefaultWidgetsLocalizations.delegate,
-            ],
           );
         },
       ),
@@ -342,10 +391,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// 🔧 Comportamiento de scroll personalizado para accesibilidad
+// ... resto de clases y extensiones (igual que antes)
 class _AppScrollBehavior extends ScrollBehavior {
   final bool reduceAnimations;
-
   const _AppScrollBehavior({this.reduceAnimations = false});
 
   @override
@@ -354,9 +402,7 @@ class _AppScrollBehavior extends ScrollBehavior {
     Widget child,
     ScrollableDetails details,
   ) {
-    if (reduceAnimations) {
-      return child;
-    }
+    if (reduceAnimations) return child;
     return GlowingOverscrollIndicator(
       axisDirection: details.direction,
       color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
@@ -366,56 +412,39 @@ class _AppScrollBehavior extends ScrollBehavior {
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    if (reduceAnimations) {
-      return const ClampingScrollPhysics();
-    }
-    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+    return reduceAnimations
+        ? const ClampingScrollPhysics()
+        : const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
   @override
   Duration get fadeDuration =>
       reduceAnimations ? Duration.zero : const Duration(milliseconds: 200);
-
   @override
   Duration get transitionDuration =>
       reduceAnimations ? Duration.zero : const Duration(milliseconds: 200);
 }
 
-// 🔧 Clase helper para navegación global
 class AppNavigator {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
-
-  static Future<T?> push<T>(String routeName, {Object? arguments}) {
-    return navigatorKey.currentState!.pushNamed<T>(
-      routeName,
-      arguments: arguments,
-    );
-  }
-
-  static void pop<T>([T? result]) {
-    navigatorKey.currentState!.pop(result);
-  }
-
-  static Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) {
-    return navigatorKey.currentState!.pushReplacementNamed<T>(
-      routeName,
-      arguments: arguments,
-    );
-  }
-
+  static Future<T?> push<T>(String routeName, {Object? arguments}) =>
+      navigatorKey.currentState!.pushNamed<T>(routeName, arguments: arguments);
+  static void pop<T>([T? result]) => navigatorKey.currentState!.pop(result);
+  static Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) =>
+      navigatorKey.currentState!.pushReplacementNamed<T>(
+        routeName,
+        arguments: arguments,
+      );
   static Future<T?> pushAndRemoveUntil<T>(
     String routeName, {
     Object? arguments,
-  }) {
-    return navigatorKey.currentState!.pushNamedAndRemoveUntil<T>(
-      routeName,
-      (route) => false,
-      arguments: arguments,
-    );
-  }
+  }) => navigatorKey.currentState!.pushNamedAndRemoveUntil<T>(
+    routeName,
+    (route) => false,
+    arguments: arguments,
+  );
 
-  // Método para mostrar diálogos globales
   static Future<T?> showDialog<T>({
     required Widget Function(BuildContext) builder,
     bool barrierDismissible = true,
@@ -428,34 +457,20 @@ class AppNavigator {
   }
 }
 
-// 🎯 Extensión para contextos de navegación
 extension NavigationExtension on BuildContext {
-  Future<T?> push<T>(String routeName, {Object? arguments}) {
-    return Navigator.pushNamed<T>(this, routeName, arguments: arguments);
-  }
+  Future<T?> push<T>(String routeName, {Object? arguments}) =>
+      Navigator.pushNamed<T>(this, routeName, arguments: arguments);
+  void pop<T>([T? result]) => Navigator.pop(this, result);
+  Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) =>
+      Navigator.pushReplacementNamed<T>(this, routeName, arguments: arguments);
+  Future<T?> pushAndRemoveUntil<T>(String routeName, {Object? arguments}) =>
+      Navigator.pushNamedAndRemoveUntil<T>(
+        this,
+        routeName,
+        (route) => false,
+        arguments: arguments,
+      );
 
-  void pop<T>([T? result]) {
-    Navigator.pop(this, result);
-  }
-
-  Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) {
-    return Navigator.pushReplacementNamed<T>(
-      this,
-      routeName,
-      arguments: arguments,
-    );
-  }
-
-  Future<T?> pushAndRemoveUntil<T>(String routeName, {Object? arguments}) {
-    return Navigator.pushNamedAndRemoveUntil<T>(
-      this,
-      routeName,
-      (route) => false,
-      arguments: arguments,
-    );
-  }
-
-  // Métodos de ayuda para el ThemeProvider
   ThemeProvider get themeProvider =>
       Provider.of<ThemeProvider>(this, listen: false);
   AuthProvider get authProvider =>
@@ -463,47 +478,53 @@ extension NavigationExtension on BuildContext {
   ChildProvider get childProvider =>
       Provider.of<ChildProvider>(this, listen: false);
   AIProvider get aiProvider => Provider.of<AIProvider>(this, listen: false);
+  PaymentProvider get paymentProvider =>
+      Provider.of<PaymentProvider>(this, listen: false);
 
-  // Método para mostrar snackbars consistentes
-  void showSnackBar(String message, {bool isError = false}) {
+  void showSnackBar(
+    String message, {
+    bool isError = false,
+    Duration duration = const Duration(seconds: 3),
+  }) {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError
             ? Theme.of(this).colorScheme.error
             : Theme.of(this).colorScheme.primary,
-        duration: const Duration(seconds: 3),
+        duration: duration,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        action: isError
+            ? SnackBarAction(
+                label: 'Cerrar',
+                textColor: Theme.of(this).colorScheme.onError,
+                onPressed: () =>
+                    ScaffoldMessenger.of(this).hideCurrentSnackBar(),
+              )
+            : null,
       ),
     );
   }
 }
 
-// 🎨 Extensión para temas personalizados
 extension ThemeExtension on ThemeData {
-  // Métodos de ayuda para colores específicos de la app
-  Color get kovaPrimary => const Color(0xFF4CAF50); // Verde KOVA
-  Color get kovaSecondary => const Color(0xFF2196F3); // Azul KOVA
+  Color get kovaPrimary => const Color(0xFF4CAF50);
+  Color get kovaSecondary => const Color(0xFF2196F3);
   Color get kovaBackground => colorScheme.background;
   Color get kovaSurface => colorScheme.surface;
   Color get kovaError => colorScheme.error;
-
-  // Métodos para textos accesibles
   TextStyle get kovaTitleLarge =>
       textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold);
-
   TextStyle get kovaBodyMedium => textTheme.bodyMedium!.copyWith(height: 1.5);
 }
 
-// 🔔 Extensión para notificaciones de accesibilidad
 extension AccessibilityExtension on BuildContext {
   bool get isDarkMode => themeProvider.isDarkMode;
   bool get isDyslexicFont => themeProvider.isDyslexicFont;
   bool get reduceAnimations => themeProvider.reduceAnimations;
   bool get disableLoudSounds => themeProvider.disableLoudSounds;
 
-  // Método para aplicar configuraciones de accesibilidad a cualquier widget
   Widget withAccessibility(Widget child) {
     return AnimatedContainer(
       duration: reduceAnimations
@@ -518,5 +539,35 @@ extension AccessibilityExtension on BuildContext {
         child: child,
       ),
     );
+  }
+}
+
+// 🔄 NUEVA EXTENSIÓN PARA SERVICIOS DE PAGO
+extension PaymentServicesExtension on BuildContext {
+  // Verificar estado de suscripción usando ambos servicios
+  Future<void> checkFullSubscriptionStatus() async {
+    final auth = authProvider;
+    final payment = paymentProvider;
+
+    if (auth.currentUser != null) {
+      final user = auth.currentUser!;
+
+      // Verificar con PaymentProvider (nueva estructura)
+      await payment.checkUserSubscription(user.uid, userEmail: user.email);
+
+      // Sincronizar con PaymentService (compatibilidad con estructura antigua)
+      await PaymentService.syncUserSubscription(user.uid);
+
+      showSnackBar('Estado de suscripción verificado y sincronizado');
+    }
+  }
+
+  // Obtener historial de pagos
+  Future<Map<String, dynamic>> getPaymentHistory() async {
+    final auth = authProvider;
+    if (auth.currentUser != null) {
+      return await PaymentService.getPaymentHistory(auth.currentUser!.uid);
+    }
+    return {'success': false, 'error': 'Usuario no autenticado'};
   }
 }

@@ -1,41 +1,41 @@
+// lib/core/models/subscription_plan.dart
 class SubscriptionPlan {
   final String id;
   final String name;
   final String description;
-  final double price; // En USD
-  final double priceARS; // En pesos argentinos
+  final double priceUSD;
+  final double priceARS;
   final int maxChildren;
-  final List<String> features;
   final int trialDays;
+  final List<String> features;
   final bool isPopular;
 
   const SubscriptionPlan({
     required this.id,
     required this.name,
     required this.description,
-    required this.price,
+    required this.priceUSD,
     required this.priceARS,
     required this.maxChildren,
+    required this.trialDays,
     required this.features,
-    this.trialDays = 15,
     this.isPopular = false,
   });
 
-  // Planes predefinidos
+  // Planes disponibles
   static const SubscriptionPlan basic = SubscriptionPlan(
     id: 'basic',
     name: 'Básico',
     description: 'Perfecto para empezar',
-    price: 1.0,
-    priceARS: 1000.0, // Conversión aproximada
+    priceUSD: 1.0,
+    priceARS: 1000.0,
     maxChildren: 1,
     trialDays: 15,
     features: [
       '1 niño incluido',
-      'Juegos básicos',
-      'Progreso simple',
+      'Actividades básicas',
+      'Reportes mensuales',
       'Soporte por email',
-      'Acceso a comunidad',
     ],
   );
 
@@ -43,92 +43,95 @@ class SubscriptionPlan {
     id: 'family',
     name: 'Familiar',
     description: 'Ideal para familias',
-    price: 3.0,
+    priceUSD: 3.0,
     priceARS: 3000.0,
     maxChildren: 3,
     trialDays: 15,
-    isPopular: true,
     features: [
-      '3 niños incluidos',
-      'Todos los juegos',
-      'Reportes básicos',
-      'IA básica',
+      'Hasta 3 niños',
+      'Todas las actividades',
+      'Reportes semanales',
       'Soporte prioritario',
-      'Acceso a comunidad',
+      'Rutinas personalizadas',
     ],
+    isPopular: true,
   );
 
   static const SubscriptionPlan premium = SubscriptionPlan(
     id: 'premium',
     name: 'Premium',
-    description: 'Para profesionales y familias exigentes',
-    price: 5.0,
+    description: 'Máxima experiencia',
+    priceUSD: 5.0,
     priceARS: 5000.0,
-    maxChildren: 999, // Ilimitado
+    maxChildren: 10,
     trialDays: 15,
     features: [
-      'Niños ilimitados',
-      'Contenido completo',
-      'IA avanzada',
-      'Reportes PDF profesionales',
-      'Panel profesional',
-      'Soporte premium 24/7',
-      'Acceso a comunidad VIP',
+      'Hasta 10 niños',
+      'Contenido exclusivo',
+      'Reportes diarios',
+      'Soporte 24/7',
+      'AI personalizada',
+      'Análisis avanzado',
     ],
   );
 
-  static List<SubscriptionPlan> get allPlans => [basic, family, premium];
+  static const List<SubscriptionPlan> allPlans = [basic, family, premium];
 
-  // Obtener plan por ID
-  static SubscriptionPlan getById(String id) {
-    return allPlans.firstWhere((plan) => plan.id == id);
-  }
+  // Métodos de utilidad
+  String get formattedPriceARS => '\$${priceARS.toStringAsFixed(0)} ARS';
+  String get formattedPriceUSD => '\$$priceUSD USD';
 
-  // Verificar si un plan permite agregar más niños
   bool canAddMoreChildren(int currentChildrenCount) {
     return currentChildrenCount < maxChildren;
   }
 
-  // Obtener precio formateado
-  String get formattedPriceARS => '\$$priceARS';
-  String get formattedPriceUSD => '\$$price';
-
-  // Verificar si está en período de prueba
-  bool isInTrialPeriod(DateTime subscriptionStart) {
-    return DateTime.now().difference(subscriptionStart).inDays <= trialDays;
+  bool isInTrialPeriod(DateTime startDate) {
+    final trialEnd = startDate.add(Duration(days: trialDays));
+    return DateTime.now().isBefore(trialEnd);
   }
 
-  // Días restantes de prueba
-  int getRemainingTrialDays(DateTime subscriptionStart) {
-    final daysUsed = DateTime.now().difference(subscriptionStart).inDays;
-    return trialDays - daysUsed;
+  int getRemainingTrialDays(DateTime startDate) {
+    final trialEnd = startDate.add(Duration(days: trialDays));
+    final remaining = trialEnd.difference(DateTime.now()).inDays;
+    return remaining > 0 ? remaining : 0;
   }
 
+  // Conversión a/desde Map para Firestore
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'description': description,
-      'price': price,
+      'priceUSD': priceUSD,
       'priceARS': priceARS,
       'maxChildren': maxChildren,
-      'features': features,
       'trialDays': trialDays,
+      'features': features,
       'isPopular': isPopular,
     };
   }
 
-  factory SubscriptionPlan.fromMap(Map<String, dynamic> map) {
+  static SubscriptionPlan fromMap(Map<String, dynamic> map) {
     return SubscriptionPlan(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       description: map['description'] ?? '',
-      price: (map['price'] ?? 0.0).toDouble(),
+      priceUSD: (map['priceUSD'] ?? 0.0).toDouble(),
       priceARS: (map['priceARS'] ?? 0.0).toDouble(),
-      maxChildren: map['maxChildren'] ?? 1,
+      maxChildren: map['maxChildren'] ?? 0,
+      trialDays: map['trialDays'] ?? 0,
       features: List<String>.from(map['features'] ?? []),
-      trialDays: map['trialDays'] ?? 15,
       isPopular: map['isPopular'] ?? false,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is SubscriptionPlan &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

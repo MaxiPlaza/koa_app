@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 import 'package:koa_app/core/theme/colors.dart';
 
 class RoutineCard extends StatelessWidget {

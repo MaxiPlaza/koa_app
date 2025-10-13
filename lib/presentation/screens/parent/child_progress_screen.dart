@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/child_provider.dart';
-import '../providers/auth_provider.dart';
-import '../core/theme/colors.dart';
-import '../core/models/child_model.dart';
-import '../core/models/report_model.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../widgets/common/custom_button.dart';
-import '../widgets/common/loading_indicator.dart';
-import '../widgets/reports/progress_chart.dart';
-import '../widgets/reports/report_card.dart';
+import 'package:koa_app/presentation/providers/child_provider.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/data/models/child_model.dart';
+import 'package:koa_app/data/models/report_model.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/presentation/widgets/parent/progress_chart.dart';
+import 'package:koa_app/presentation/widgets/parent/report_card.dart';
 import 'reports_screen.dart';
 
 class ChildProgressScreen extends StatefulWidget {

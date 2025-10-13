@@ -1,26 +1,20 @@
+// lib/core/services/mercado_pago_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:mercado_pago_sdk/mercado_pago_sdk.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:flutter/material.dart';
 
 class MercadoPagoService {
   static const String _baseUrl = 'https://api.mercadopago.com';
-  static String _accessToken =
-      'TU_ACCESS_TOKEN_AQUI'; // Reemplazar en producción
-  static String _publicKey = 'TU_PUBLIC_KEY_AQUI'; // Reemplazar en producción
 
-  static late MercadoPago _mercadoPago;
+  // 🔐 REEMPLAZA ESTOS CON TUS CREDENCIALES REALES
+  static String _accessToken = 'APP_USR-7255591479184386-101309-dfab2f93f4c50a5b0be7afad89a433d6-1309579932';
+  static String _publicKey = 'APP_USR-64000b7d-62ec-4fc2-b131-696a7943bd27';
 
-  // Inicializar SDK de Mercado Pago
-  static Future<void> initialize() async {
-    _mercadoPago = MercadoPago(
-      publicKey: _publicKey,
-      accessToken: _accessToken,
-    );
-
-    // Configurar preferencias
-    await _mercadoPago.configure(
-      environment: MPEnvironment.sandbox, // Cambiar a .production en producción
-    );
+  // Configurar credenciales (llamar desde main.dart)
+  static void configure({required String accessToken, required String publicKey}) {
+    _accessToken = accessToken;
+    _publicKey = publicKey;
   }
 
   // Crear preferencia de pago para suscripción
@@ -30,8 +24,11 @@ class MercadoPagoService {
     required double price,
     required int trialDays,
     required String userEmail,
+    required String userId,
   }) async {
     try {
+      print('🔄 Creando preferencia para plan: $planId, usuario: $userId');
+
       final response = await http.post(
         Uri.parse('$_baseUrl/checkout/preferences'),
         headers: {
@@ -42,14 +39,17 @@ class MercadoPagoService {
           'items': [
             {
               'id': planId,
-              'title': planName,
-              'description': 'Suscripción $planName - KOA App',
+              'title': 'KOA - $planName',
+              'description': 'Suscripción $planName - App KOA',
               'quantity': 1,
               'currency_id': 'ARS',
               'unit_price': price,
             },
           ],
-          'payer': {'email': userEmail},
+          'payer': {
+            'email': userEmail,
+            'name': 'Usuario KOA',
+          },
           'back_urls': {
             'success': 'koa://payment/success',
             'failure': 'koa://payment/failure',
@@ -61,87 +61,111 @@ class MercadoPagoService {
               {'id': 'atm'},
             ],
             'installments': 1,
+            'default_installments': 1,
           },
-          'notification_url':
-              'https://tu-webhook.com/notifications', // Webhook para notificaciones
+          'notification_url': 'https://kovapp.com/webhook/mercadopago',
           'statement_descriptor': 'KOA - Neurodesarrollo',
-          'external_reference':
-              'subscription_${DateTime.now().millisecondsSinceEpoch}',
+          'external_reference': 'subscription_${DateTime.now().millisecondsSinceEpoch}_$userId',
           'expires': false,
           'metadata': {
             'plan_id': planId,
             'plan_name': planName,
             'trial_days': trialDays,
             'user_email': userEmail,
+            'user_id': userId,
+            'app_name': 'KOA',
           },
         }),
       );
 
+      print('📡 Respuesta MP: ${response.statusCode}');
+
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
+        print('✅ Preferencia creada: ${data['id']}');
+
         return {
           'success': true,
           'preferenceId': data['id'],
           'initPoint': data['init_point'],
         };
       } else {
-        throw Exception('Error creando preferencia: ${response.statusCode}');
+        print('❌ Error MP: ${response.statusCode} - ${response.body}');
+        return {
+          'success': false,
+          'error': 'Error creando preferencia: ${response.statusCode} - ${response.body}'
+        };
       }
-    } catch (e) {
-      return {'success': false, 'error': e.toString()};
+    } catch (e, stackTrace) {
+      print('💥 Exception MP: $e');
+      print('Stack trace: $stackTrace');
+      return {'success': false, 'error': 'Error de conexión: $e'};
     }
   }
 
-  // Procesar pago con tarjeta de crédito
-  static Future<Map<String, dynamic>> processCreditCardPayment({
-    required String token,
-    required String issuerId,
-    required String paymentMethodId,
-    required int installments,
-    required double amount,
-    required String planId,
-    required String userEmail,
+  // Abrir checkout con Custom Tabs
+  static Future<void> launchCheckout({
+    required String initPoint,
+    required BuildContext context,
   }) async {
     try {
-      final paymentData = {
-        'transaction_amount': amount,
-        'token': token,
-        'description': 'Suscripción KOA - $planId',
-        'installments': installments,
-        'payment_method_id': paymentMethodId,
-        'issuer_id': issuerId,
-        'payer': {'email': userEmail},
-        'metadata': {'plan_id': planId, 'user_email': userEmail},
-      };
+      print('🌐 Abriendo checkout: $initPoint');
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl/v1/payments'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_accessToken',
-        },
-        body: json.encode(paymentData),
+      final theme = Theme.of(context);
+
+      await launchUrl(
+        Uri.parse(initPoint),
+        customTabsOptions: CustomTabsOptions(
+          colorSchemes: CustomTabsColorSchemes.defaults(
+            toolbarColor: theme.colorScheme.primary,
+          ),
+          shareState: CustomTabsShareState.on,
+          urlBarHidingEnabled: true,
+          showTitle: true,
+          closeButton: CustomTabsCloseButton(
+            icon: CustomTabsCloseButtonIcons.back,
+          ),
+          animations: const CustomTabsAnimations(
+            startEnter: 'slide_up',
+            startExit: 'android:anim/fade_out',
+            endEnter: 'android:anim/fade_in',
+            endExit: 'slide_down',
+          ),
+        ),
+        safariVCOptions: const SafariViewControllerOptions(
+          barCollapsingEnabled: true,
+          dismissButtonStyle: SafariViewControllerDismissButtonStyle.close,
+          preferredBarTintColor: Colors.white,
+          preferredControlTintColor: Colors.blue,
+        ),
       );
 
-      if (response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return {
-          'success': true,
-          'paymentId': data['id'],
-          'status': data['status'],
-          'statusDetail': data['status_detail'],
-        };
-      } else {
-        throw Exception('Error procesando pago: ${response.statusCode}');
+      print('✅ Checkout abierto exitosamente');
+    } catch (e, stackTrace) {
+      print('💥 Error lanzando Custom Tab: $e');
+      print('Stack trace: $stackTrace');
+
+      // Fallback: intentar con url_launcher
+      try {
+        print('🔄 Intentando fallback con url_launcher...');
+        import 'package:url_launcher/url_launcher.dart';
+        if (await canLaunchUrl(Uri.parse(initPoint))) {
+          await launchUrl(Uri.parse(initPoint));
+        } else {
+          throw Exception('No se pudo abrir la URL');
+        }
+      } catch (fallbackError) {
+        print('💥 Fallback también falló: $fallbackError');
+        rethrow;
       }
-    } catch (e) {
-      return {'success': false, 'error': e.toString()};
     }
   }
 
   // Obtener estado de un pago
   static Future<Map<String, dynamic>> getPaymentStatus(String paymentId) async {
     try {
+      print('🔄 Consultando estado de pago: $paymentId');
+
       final response = await http.get(
         Uri.parse('$_baseUrl/v1/payments/$paymentId'),
         headers: {'Authorization': 'Bearer $_accessToken'},
@@ -149,35 +173,54 @@ class MercadoPagoService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('✅ Estado de pago: ${data['status']}');
+
         return {
           'success': true,
           'status': data['status'],
           'statusDetail': data['status_detail'],
           'amount': data['transaction_amount'],
+          'paymentId': data['id'],
         };
       } else {
-        throw Exception('Error obteniendo estado: ${response.statusCode}');
+        print('❌ Error consultando pago: ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Error obteniendo estado: ${response.statusCode}'
+        };
       }
     } catch (e) {
+      print('💥 Error consultando pago: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
 
-  // Cancelar suscripción
-  static Future<Map<String, dynamic>> cancelSubscription(
-    String subscriptionId,
-  ) async {
+  // Buscar pagos por referencia externa
+  static Future<Map<String, dynamic>> searchPaymentsByReference(
+      String externalReference,
+      ) async {
     try {
-      final response = await http.put(
-        Uri.parse('$_baseUrl/preauthorized/$subscriptionId'),
+      print('🔍 Buscando pagos por referencia: $externalReference');
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/v1/payments/search?external_reference=$externalReference'),
         headers: {'Authorization': 'Bearer $_accessToken'},
-        body: json.encode({'status': 'cancelled'}),
       );
 
       if (response.statusCode == 200) {
-        return {'success': true};
+        final data = json.decode(response.body);
+        final payments = data['results'] as List;
+        print('✅ Encontrados ${payments.length} pagos');
+
+        return {
+          'success': true,
+          'payments': payments,
+        };
       } else {
-        throw Exception('Error cancelando suscripción: ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Error buscando pagos: ${response.statusCode}'
+        };
       }
     } catch (e) {
       return {'success': false, 'error': e.toString()};
@@ -185,32 +228,75 @@ class MercadoPagoService {
   }
 
   // Verificar si el usuario tiene una suscripción activa
-  static Future<bool> checkActiveSubscription(String userEmail) async {
+  static Future<bool> checkActiveSubscription(String userId) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '$_baseUrl/v1/payments/search?sort=date_created&criteria=desc&external_reference=$userEmail',
-        ),
-        headers: {'Authorization': 'Bearer $_accessToken'},
-      );
+      print('🔍 Verificando suscripción activa para: $userId');
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final payments = data['results'] as List;
+      final result = await searchPaymentsByReference('subscription_$userId');
 
-        // Buscar pagos aprobados recientes
+      if (result['success']) {
+        final payments = result['payments'] as List;
+
+        // Buscar pagos aprobados en los últimos 30 días
         final activePayment = payments.firstWhere(
-          (payment) =>
-              payment['status'] == 'approved' &&
-              DateTime.parse(
-                payment['date_created'],
-              ).isAfter(DateTime.now().subtract(const Duration(days: 30))),
+              (payment) =>
+          payment['status'] == 'approved' &&
+              DateTime.parse(payment['date_created'])
+                  .isAfter(DateTime.now().subtract(const Duration(days: 30))),
           orElse: () => null,
         );
 
-        return activePayment != null;
+        final hasActiveSubscription = activePayment != null;
+        print('📊 Usuario $userId - Suscripción activa: $hasActiveSubscription');
+
+        return hasActiveSubscription;
       }
       return false;
+    } catch (e) {
+      print('💥 Error verificando suscripción: $e');
+      return false;
+    }
+  }
+
+  // Cancelar suscripción en Mercado Pago
+  static Future<Map<String, dynamic>> cancelSubscription(String subscriptionId) async {
+    try {
+      print('🔄 Cancelando suscripción: $subscriptionId');
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/preauthorized/$subscriptionId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_accessToken',
+        },
+        body: json.encode({'status': 'cancelled'}),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ Suscripción cancelada exitosamente');
+        return {'success': true};
+      } else {
+        print('❌ Error cancelando suscripción: ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Error cancelando suscripción: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      print('💥 Error cancelando suscripción: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // Verificar credenciales
+  static Future<bool> verifyCredentials() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/v1/payment_methods'),
+        headers: {'Authorization': 'Bearer $_accessToken'},
+      );
+
+      return response.statusCode == 200;
     } catch (e) {
       return false;
     }

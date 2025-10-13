@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:koa_app/core/models/report_model.dart';
+import 'package:koa_app/data/models/report_model.dart';
 import 'package:koa_app/core/theme/colors.dart';
 
 class ReportCard extends StatelessWidget {

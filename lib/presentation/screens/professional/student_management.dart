@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/child_model.dart';
-import '../../../providers/child_provider.dart';
-import '../../../providers/ai_provider.dart';
+import 'package:koa_app/presentation/providers/ai_provider.dart';
+import 'package:koa_app/presentation/providers/child_provider.dart';
 import '../../widgets/common/kova_mascot.dart';
 
 class StudentManagement extends StatefulWidget {

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/ai_provider.dart';
-import '../providers/child_provider.dart';
-import '../widgets/common/kova_mascot.dart';
-
+import 'package:koa_app/presentation/providers/ai_provider.dart';
+import 'package:koa_app/presentation/providers/child_provider.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 class AIAnalysisScreen extends StatelessWidget {
   const AIAnalysisScreen({super.key});
 

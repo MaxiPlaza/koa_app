@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:koa_app/core/theme/colors.dart';
+import 'dart:math';
 
 class SkillProgressChart extends StatelessWidget {
   final Map<String, double> skillProgress;
