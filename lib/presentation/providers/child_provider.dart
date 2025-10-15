@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:koa_app/data/models/child_model.dart';
-import 'package:koa_app/data/models/activity_model.dart';
+import 'package:koa_app/data/models/game_session.dart';
 
 class ChildProvider with ChangeNotifier {
   ChildModel? _currentChild;
@@ -19,6 +19,19 @@ class ChildProvider with ChangeNotifier {
     await _loadGameSessions();
     notifyListeners();
   }
+
+  Future<void> loadChildData() async {
+    if (_currentChild == null) {
+      // Lógica opcional: Si no hay un niño seleccionado, podrías intentar cargar
+      // el niño principal del usuario o simplemente retornar.
+      if (kDebugMode) {
+        print('No hay un niño actual para cargar datos.');
+      }
+      return;
+    }
+    await _loadGameSessions();
+  }
+  // -
 
   Future<void> _loadGameSessions() async {
     if (_currentChild == null) return;

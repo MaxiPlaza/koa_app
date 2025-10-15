@@ -1,4 +1,31 @@
 import 'package:koa_app/data/models/routine_model.dart';
+import "package:flutter/material.dart";
+
+class PredefinedRoutines {
+  static final List<RoutineTask> morningRoutineTEA = [
+    RoutineTask(
+        id: 'task1', name: 'Despertar y vestirse', estimatedMinutes: 15),
+    RoutineTask(id: 'task2', name: 'Desayunar', estimatedMinutes: 20),
+    RoutineTask(
+        id: 'task3', name: 'Cepillarse los dientes', estimatedMinutes: 5),
+    RoutineTask(id: 'task4', name: 'Preparar mochila', estimatedMinutes: 10),
+  ];
+
+  static final List<RoutineTask> eveningRoutineTDAH = [
+    RoutineTask(id: 'task5', name: 'Guardar juguetes', estimatedMinutes: 10),
+    RoutineTask(id: 'task6', name: 'Tomar un baño', estimatedMinutes: 20),
+    RoutineTask(id: 'task7', name: 'Cena', estimatedMinutes: 30),
+    RoutineTask(id: 'task8', name: 'Leer un cuento', estimatedMinutes: 15),
+    RoutineTask(id: 'task9', name: 'Dormir', estimatedMinutes: 5),
+  ];
+
+  static final List<RoutineTask> sensoryRoutine = [
+    RoutineTask(id: 'task10', name: 'Estiramientos', estimatedMinutes: 5),
+    RoutineTask(
+        id: 'task11', name: 'Juego de presión profunda', estimatedMinutes: 10),
+    RoutineTask(id: 'task12', name: 'Escucha tranquila', estimatedMinutes: 15),
+  ];
+}
 
 abstract class RoutineRepository {
   Future<List<RoutineModel>> getRoutinesByChildId(String childId);

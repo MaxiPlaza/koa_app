@@ -4,6 +4,8 @@ import '../../../data/models/child_model.dart';
 import 'package:koa_app/presentation/providers/ai_provider.dart';
 import 'package:koa_app/presentation/providers/child_provider.dart';
 import '../../widgets/common/kova_mascot.dart';
+import 'package:koa_app/data/models/game_session.dart';
+import 'package:koa_app/core/services/ai_service.dart';
 
 class StudentManagement extends StatefulWidget {
   const StudentManagement({super.key});
@@ -84,6 +86,16 @@ class _StudentManagementState extends State<StudentManagement> {
     );
   }
 
+  Color _getProgressColor(double progress) {
+    if (progress < 0.4) {
+      return Colors.red; // Bajo progreso
+    } else if (progress < 0.7) {
+      return Colors.orange; // Progreso medio
+    } else {
+      return Colors.green; // Buen progreso
+    }
+  }
+
   Widget _buildProfileTab(ChildModel student, BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -118,7 +130,9 @@ class _StudentManagementState extends State<StudentManagement> {
                       children: [
                         Text(
                           student.name,
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
@@ -156,8 +170,8 @@ class _StudentManagementState extends State<StudentManagement> {
                   Text(
                     'Observaciones del Profesional',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -221,13 +235,17 @@ class _StudentManagementState extends State<StudentManagement> {
                           children: [
                             Text(
                               'Análisis de Progreso',
-                              style: Theme.of(context).textTheme.titleLarge
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Análisis generado por IA KOA',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
@@ -268,8 +286,8 @@ class _StudentManagementState extends State<StudentManagement> {
                   Text(
                     'Habilidades Desarrolladas',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   ...analysis.entries
@@ -298,8 +316,8 @@ class _StudentManagementState extends State<StudentManagement> {
                     Text(
                       'Recomendaciones de IA',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 12),
                     ...aiProvider.recommendations
@@ -335,8 +353,8 @@ class _StudentManagementState extends State<StudentManagement> {
                   Text(
                     'Configuración de Dificultad',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   _buildSettingSlider(
@@ -345,8 +363,8 @@ class _StudentManagementState extends State<StudentManagement> {
                     student.settings.difficultyLevel == 'easy'
                         ? 1.0
                         : student.settings.difficultyLevel == 'medium'
-                        ? 2.0
-                        : 3.0,
+                            ? 2.0
+                            : 3.0,
                     (value) {
                       // Actualizar configuración
                     },
@@ -377,34 +395,33 @@ class _StudentManagementState extends State<StudentManagement> {
                   Text(
                     'Áreas de Enfoque Personalizado',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children:
-                        [
-                              'Memoria',
-                              'Atención',
-                              'Emociones',
-                              'Patrones',
-                              'Social',
-                              'Lógica',
-                            ]
-                            .map(
-                              (area) => FilterChip(
-                                label: Text(area),
-                                selected: student.settings.focusAreas.contains(
-                                  area.toLowerCase(),
-                                ),
-                                onSelected: (selected) {
-                                  // Actualizar áreas de enfoque
-                                },
-                              ),
-                            )
-                            .toList(),
+                    children: [
+                      'Memoria',
+                      'Atención',
+                      'Emociones',
+                      'Patrones',
+                      'Social',
+                      'Lógica',
+                    ]
+                        .map(
+                          (area) => FilterChip(
+                            label: Text(area),
+                            selected: student.settings.focusAreas.contains(
+                              area.toLowerCase(),
+                            ),
+                            onSelected: (selected) {
+                              // Actualizar áreas de enfoque
+                            },
+                          ),
+                        )
+                        .toList(),
                   ),
                 ],
               ),
@@ -422,8 +439,8 @@ class _StudentManagementState extends State<StudentManagement> {
                   Text(
                     'Accesibilidad',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   _buildSettingSwitch(
@@ -584,8 +601,8 @@ class _StudentManagementState extends State<StudentManagement> {
                   child: Text(
                     recommendation.title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 Container(
@@ -645,8 +662,9 @@ class _StudentManagementState extends State<StudentManagement> {
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-            ),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
           ),
           Slider(
             value: value,
@@ -689,8 +707,8 @@ class _StudentManagementState extends State<StudentManagement> {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-          ),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
         ),
       ],
     );
@@ -794,8 +812,8 @@ class _StudentManagementState extends State<StudentManagement> {
                 Text(
                   'Métricas de Desempeño:',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 ...session.performance.entries

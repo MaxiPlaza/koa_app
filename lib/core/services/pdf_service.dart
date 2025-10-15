@@ -5,16 +5,16 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:koa_app/core/models/child_model.dart';
-import 'package:koa_app/core/models/user_model.dart';
-import 'package:koa_app/core/models/report_model.dart';
-import 'package:koa_app/core/services/ai_service.dart';
+import 'package:koa_app/data/models/child_model.dart';
+import 'package:koa_app/data/models/user_model.dart';
+import 'package:koa_app/data/models/report_model.dart';
+import 'package:koa_app/core/services/ai_service.dart' as ai;
 import 'package:koa_app/core/services/local_storage.dart';
-import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/data/models/game_session.dart';
+import 'package:flutter/material.dart';
 
 class PdfService {
-  final AIService _aiService = AIService();
+  final ai.AIService _aiService = ai.AIService();
   final LocalStorage _localStorage = LocalStorage();
 
   // 🎯 Generar reporte completo
@@ -42,7 +42,7 @@ class PdfService {
         periodStart: periodStart,
         periodEnd: periodEnd,
         data: reportData,
-        analysis: aiAnalysis,
+        aiData: aiAnalysis,
       );
 
       // Crear modelo del reporte
@@ -72,6 +72,29 @@ class PdfService {
     }
   }
 
+  // CORRECCIÓN 16: Método _buildActivitiesSummary
+  pw.Widget _buildActivitiesSummary(Map<String, int> topActivities) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Header(
+          level: 2,
+          child: pw.Text(
+            'RESUMEN DE ACTIVIDADES',
+            style: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey700),
+          ),
+        ),
+        pw.SizedBox(height: 10),
+        if (topActivities.isEmpty)
+          pw.Text('No hay datos de actividades para este período.'),
+        ...topActivities.entries
+            .map((entry) => pw.Text('- ${entry.key}: ${entry.value} sesiones'))
+            .toList(),
+      ],
+    );
+  }
+
   // 📊 Recopilar datos para el reporte
   Future<ReportData> _collectReportData(
     ChildModel child,
@@ -90,11 +113,10 @@ class PdfService {
 
     // Calcular tasa de finalización (ejemplo)
     final completedSessions = child.progress.recentSessions
-        .where((session) => session.completed)
+        .where((session) => session.completed == true)
         .length;
-    final completionRate = sessionsCompleted > 0
-        ? completedSessions / sessionsCompleted
-        : 0.0;
+    final completionRate =
+        sessionsCompleted > 0 ? completedSessions / sessionsCompleted : 0.0;
 
     // Puntaje de engagement (ejemplo basado en estrellas y tiempo)
     final engagementScore = _calculateEngagementScore(
@@ -119,15 +141,16 @@ class PdfService {
 
   // 🧠 Generar análisis con IA
   Future<({ReportAnalysis analysis, List<AIRecommendation> recommendations})>
-  _generateAIAnalysis(ChildModel child, ReportData data) async {
+      _generateAIAnalysis(ChildModel child, ReportData data) async {
     try {
       // Convertir sesiones a formato que entienda AIService
       final sessions = child.progress.recentSessions.map((session) {
         return GameSession(
-          activityId: session.activityId,
-          score: (session.score * 1000).toInt(), // Convertir a escala similar
-          durationInMinutes: session.duration,
-          completed: session.completed,
+          activityId: session.activityId ?? 'unknown',
+          score: ((session.score ?? 0.0) * 1000)
+              .toInt(), // Convertir a escala similar
+          durationInMinutes: session.duration ?? 0,
+          completed: session.completed ?? false,
         );
       }).toList();
 
@@ -185,8 +208,10 @@ class PdfService {
     required DateTime periodStart,
     required DateTime periodEnd,
     required ReportData data,
-    required ({ReportAnalysis analysis, List<AIRecommendation> recommendations})
-    aiData,
+    required ({
+      ReportAnalysis analysis,
+      List<AIRecommendation> recommendations
+    }) aiData,
   }) async {
     final pdf = pw.Document();
 
@@ -275,7 +300,8 @@ class PdfService {
                 ),
                 pw.Text(
                   'Aprendizaje Neuroinclusivo',
-                  style: pw.TextStyle(fontSize: 12, color: PdfColors.grey),
+                  style:
+                      const pw.TextStyle(fontSize: 12, color: PdfColors.grey),
                 ),
               ],
             ),
@@ -424,7 +450,7 @@ class PdfService {
           pw.SizedBox(height: 15),
           pw.Text(
             _generateSummaryText(data, child),
-            style: pw.TextStyle(fontSize: 12),
+            style: const pw.TextStyle(fontSize: 12),
             textAlign: pw.TextAlign.justify,
           ),
         ],
@@ -463,7 +489,7 @@ class PdfService {
                       flex: 2,
                       child: pw.Text(
                         _formatSkillName(entry.key),
-                        style: pw.TextStyle(fontSize: 12),
+                        style: const pw.TextStyle(fontSize: 12),
                       ),
                     ),
                     pw.Expanded(
@@ -506,7 +532,7 @@ class PdfService {
                 pw.SizedBox(height: 8),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -552,10 +578,10 @@ class PdfService {
                 padding: const pw.EdgeInsets.only(bottom: 4),
                 child: pw.Text(
                   '• ${_formatSkillName(strength.key)}: ${(strength.value * 100).toStringAsFixed(0)}%',
-                  style: pw.TextStyle(fontSize: 10),
+                  style: const pw.TextStyle(fontSize: 10),
                 ),
               );
-            }).toList(),
+            }),
             pw.SizedBox(height: 15),
           ],
 
@@ -575,10 +601,10 @@ class PdfService {
                 padding: const pw.EdgeInsets.only(bottom: 4),
                 child: pw.Text(
                   '• ${_formatSkillName(area.key)}: ${(area.value * 100).toStringAsFixed(0)}%',
-                  style: pw.TextStyle(fontSize: 10),
+                  style: const pw.TextStyle(fontSize: 10),
                 ),
               );
-            }).toList(),
+            }),
             pw.SizedBox(height: 15),
           ],
 
@@ -590,7 +616,7 @@ class PdfService {
           pw.SizedBox(height: 8),
           pw.Text(
             analysis.learningInsight,
-            style: pw.TextStyle(fontSize: 10),
+            style: const pw.TextStyle(fontSize: 10),
             textAlign: pw.TextAlign.justify,
           ),
           pw.SizedBox(height: 15),
@@ -603,7 +629,7 @@ class PdfService {
           pw.SizedBox(height: 8),
           pw.Text(
             analysis.overallProgress,
-            style: pw.TextStyle(fontSize: 10),
+            style: const pw.TextStyle(fontSize: 10),
             textAlign: pw.TextAlign.justify,
           ),
         ],
@@ -633,7 +659,6 @@ class PdfService {
             ),
           ),
           pw.SizedBox(height: 15),
-
           ...recommendations.map((recommendation) {
             return pw.Container(
               width: double.infinity,
@@ -682,7 +707,7 @@ class PdfService {
                   pw.SizedBox(height: 8),
                   pw.Text(
                     recommendation.description,
-                    style: pw.TextStyle(fontSize: 10),
+                    style: const pw.TextStyle(fontSize: 10),
                   ),
                   pw.SizedBox(height: 6),
                   pw.Text(
@@ -696,7 +721,7 @@ class PdfService {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -757,7 +782,8 @@ class PdfService {
                   children: [
                     pw.Text(
                       'Generado por:',
-                      style: pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                      style: const pw.TextStyle(
+                          fontSize: 10, color: PdfColors.grey),
                     ),
                     pw.Text(
                       generatedBy.name,
@@ -768,7 +794,8 @@ class PdfService {
                     ),
                     pw.Text(
                       '${generatedBy.userType.toUpperCase()} • KOA App',
-                      style: pw.TextStyle(fontSize: 9, color: PdfColors.grey),
+                      style: const pw.TextStyle(
+                          fontSize: 9, color: PdfColors.grey),
                     ),
                   ],
                 ),
@@ -783,11 +810,12 @@ class PdfService {
                   children: [
                     pw.Text(
                       'Fecha de generación:',
-                      style: pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                      style: const pw.TextStyle(
+                          fontSize: 10, color: PdfColors.grey),
                     ),
                     pw.Text(
                       _formatDate(DateTime.now()),
-                      style: pw.TextStyle(fontSize: 12),
+                      style: const pw.TextStyle(fontSize: 12),
                     ),
                     pw.Container(
                       margin: const pw.EdgeInsets.only(top: 15),
@@ -796,7 +824,8 @@ class PdfService {
                     ),
                     pw.Text(
                       'Firma',
-                      style: pw.TextStyle(fontSize: 9, color: PdfColors.grey),
+                      style: const pw.TextStyle(
+                          fontSize: 9, color: PdfColors.grey),
                     ),
                   ],
                 ),
@@ -844,7 +873,7 @@ class PdfService {
 
   // ========== MÉTODOS AUXILIARES ==========
 
-  pw.Widget _buildInfoRow(String label, String value) {
+  pw.Widget _buildInfoRow(String label, String value, pw.IconData icon) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
       child: pw.Row(
@@ -858,7 +887,7 @@ class PdfService {
             ),
           ),
           pw.SizedBox(width: 5),
-          pw.Text(value, style: pw.TextStyle(fontSize: 10)),
+          pw.Text(value, style: const pw.TextStyle(fontSize: 10)),
         ],
       ),
     );
@@ -915,9 +944,9 @@ class PdfService {
                   children: [
                     pw.Container(
                       height: entry.value * 100,
-                      decoration: pw.BoxDecoration(
+                      decoration: const pw.BoxDecoration(
                         color: PdfColors.green,
-                        borderRadius: const pw.BorderRadius.only(
+                        borderRadius: pw.BorderRadius.only(
                           topLeft: pw.Radius.circular(3),
                           topRight: pw.Radius.circular(3),
                         ),
@@ -926,7 +955,7 @@ class PdfService {
                     pw.SizedBox(height: 5),
                     pw.Text(
                       _abbreviateSkill(entry.key),
-                      style: pw.TextStyle(fontSize: 6),
+                      style: const pw.TextStyle(fontSize: 6),
                       textAlign: pw.TextAlign.center,
                     ),
                   ],
@@ -963,27 +992,27 @@ class PdfService {
                     flex: 3,
                     child: pw.Text(
                       activity.activityName,
-                      style: pw.TextStyle(fontSize: 8),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ),
                   pw.Expanded(
                     flex: 2,
                     child: pw.Text(
                       '${activity.sessions} sesiones',
-                      style: pw.TextStyle(fontSize: 8),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ),
                   pw.Expanded(
                     flex: 2,
                     child: pw.Text(
                       '${(activity.completionRate * 100).toStringAsFixed(0)}% completo',
-                      style: pw.TextStyle(fontSize: 8),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -1080,19 +1109,19 @@ class PdfService {
     }
 
     return activityCount.entries.map((entry) {
-        final activityId = entry.key;
-        final sessionsCount = entry.value;
-        final avgScore = activityScores[activityId]! / sessionsCount;
-        final completionRate = activityCompletions[activityId]! / sessionsCount;
+      final activityId = entry.key;
+      final sessionsCount = entry.value;
+      final avgScore = activityScores[activityId]! / sessionsCount;
+      final completionRate = activityCompletions[activityId]! / sessionsCount;
 
-        return ActivitySummary(
-          activityId: activityId,
-          activityName: _getActivityName(activityId),
-          sessions: sessionsCount,
-          avgScore: avgScore,
-          completionRate: completionRate,
-        );
-      }).toList()
+      return ActivitySummary(
+        activityId: activityId,
+        activityName: _getActivityName(activityId),
+        sessions: sessionsCount,
+        avgScore: avgScore,
+        completionRate: completionRate,
+      );
+    }).toList()
       ..sort((a, b) => b.sessions.compareTo(a.sessions))
       ..take(5);
   }
@@ -1198,8 +1227,7 @@ class PdfService {
     await Share.shareXFiles(
       [XFile(file.path)],
       subject: 'Reporte de Progreso - ${report.childName}',
-      text:
-          'Te comparto el reporte de progreso de ${report.childName} '
+      text: 'Te comparto el reporte de progreso de ${report.childName} '
           'generado con KOA App.',
     );
   }
@@ -1222,53 +1250,5 @@ class PdfService {
 
     final file = File(report.pdfUrl!);
     return await file.readAsBytes();
-  }
-}
-
-// 🎮 Clase auxiliar para compatibilidad con AIService
-class GameSession {
-  final String activityId;
-  final int score;
-  final int durationInMinutes;
-  final bool completed;
-
-  GameSession({
-    required this.activityId,
-    required this.score,
-    required this.durationInMinutes,
-    required this.completed,
-  });
-}
-
-// 📊 Clase auxiliar para sesiones
-class Session {
-  final String activityId;
-  final double score;
-  final int duration;
-  final bool completed;
-
-  Session({
-    required this.activityId,
-    required this.score,
-    required this.duration,
-    required this.completed,
-  });
-
-  factory Session.fromMap(Map<String, dynamic> map) {
-    return Session(
-      activityId: map['activityId'] ?? '',
-      score: (map['score'] ?? 0.0).toDouble(),
-      duration: map['duration'] ?? 0,
-      completed: map['completed'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'activityId': activityId,
-      'score': score,
-      'duration': duration,
-      'completed': completed,
-    };
   }
 }

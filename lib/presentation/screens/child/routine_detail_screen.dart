@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 import 'package:koa_app/presentation/providers/routine_provider.dart';
-import 'package:koa_app/presentation/widgets/routines/routine_task_widget.dart';
+import 'package:koa_app/presentation/widgets/child/routine_task_widget.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
-import 'package:koa_app/presentation/screens/routines/add_edit_routine_screen.dart';
+import 'package:koa_app/presentation/screens/common/add_edit_routine_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
   final RoutineModel routine;
@@ -238,7 +238,6 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-
             ...sortedTasks.map((task) {
               return RoutineTaskWidget(
                 task: task,
@@ -252,7 +251,6 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                 },
               );
             }).toList(),
-
             if (sortedTasks.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),

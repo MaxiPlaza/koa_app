@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/models/child_model.dart';
-import 'package:koa_app/core/models/report_model.dart';
+import 'package:koa_app/data/models/child_model.dart';
+import 'package:koa_app/data/models/report_model.dart';
 import 'package:koa_app/core/services/local_storage.dart';
 import 'package:koa_app/core/services/pdf_service.dart';
 import 'package:koa_app/presentation/providers/child_provider.dart';
@@ -9,7 +9,8 @@ import 'package:koa_app/presentation/providers/auth_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:koa_app/presentation/widgets/common/custom_button.dart';
-import 'package:koa_app/presentation/widgets/reports/report_card.dart';
+import 'package:koa_app/presentation/widgets/parent/report_card.dart';
+import 'package:koa_app/core/theme/colors.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -286,13 +287,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ],
       ),
-
       body: _isLoading
           ? const LoadingIndicator()
           : _filteredReports.isEmpty
-          ? _buildEmptyState()
-          : _buildReportsList(),
-
+              ? _buildEmptyState()
+              : _buildReportsList(),
       floatingActionButton: _reports.isNotEmpty
           ? FloatingActionButton(
               onPressed: _generateNewReport,

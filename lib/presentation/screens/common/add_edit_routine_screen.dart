@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 import 'package:koa_app/presentation/providers/routine_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/presentation/widgets/common/custom_button.dart';
@@ -86,8 +86,7 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
       final routineProvider = context.read<RoutineProvider>();
 
       final routine = RoutineModel(
-        id:
-            widget.routine?.id ??
+        id: widget.routine?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         childId: widget.childId,
         name: _nameController.text,
@@ -469,7 +468,6 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
             if (_tasks.isEmpty) _buildEmptyTasksState() else _buildTasksList(),
           ],
         ),
@@ -559,7 +557,6 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-
             ListTile(
               leading: const Icon(Icons.access_time),
               title: const Text('Horario'),
@@ -569,7 +566,6 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _selectSchedule,
             ),
-
             ListTile(
               leading: const Icon(Icons.calendar_today),
               title: const Text('Días de la semana'),
@@ -577,7 +573,6 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _selectSchedule,
             ),
-
             SwitchListTile(
               title: const Text('Recordatorio'),
               subtitle: const Text('Recibir notificación antes de la rutina'),
@@ -588,7 +583,6 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
                 });
               },
             ),
-
             if (_schedule.hasReminder)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -913,19 +907,18 @@ class _ScheduleEditorDialogState extends State<_ScheduleEditorDialog> {
                   .asMap()
                   .entries
                   .map((entry) {
-                    final index = entry.key;
-                    final day = entry.value;
-                    return FilterChip(
-                      label: Text(day),
-                      selected: _selectedDays[index],
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedDays[index] = selected;
-                        });
-                      },
-                    );
-                  })
-                  .toList(),
+                final index = entry.key;
+                final day = entry.value;
+                return FilterChip(
+                  label: Text(day),
+                  selected: _selectedDays[index],
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedDays[index] = selected;
+                    });
+                  },
+                );
+              }).toList(),
             ),
             const SizedBox(height: 24),
             ListTile(

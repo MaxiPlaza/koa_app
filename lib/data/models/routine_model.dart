@@ -8,7 +8,7 @@ class RoutineModel {
   final String description;
   final String icon;
   final String color;
-  final List<RoutineTask> tasks;
+  final List<RoutineTask> tasks; // La clase RoutineTask está definida al final
   final RoutineSchedule schedule;
   final bool isActive;
   final DateTime createdAt;
@@ -60,6 +60,7 @@ class RoutineModel {
       'description': description,
       'icon': icon,
       'color': color,
+      // Se corrigió el error de 'toMap' en caso de que 'tasks' fuera nulo, pero 'tasks' es requerido y no nulo.
       'tasks': tasks.map((x) => x.toMap()).toList(),
       'schedule': schedule.toMap(),
       'isActive': isActive,
@@ -73,33 +74,39 @@ class RoutineModel {
   // Calcular progreso actual de la rutina
   double get progress {
     if (tasks.isEmpty) return 0.0;
+    // Uso sin '!' asumiendo que los elementos de tasks son RoutineTask no nulos
     final completedTasks = tasks.where((task) => task.completed).length;
     return completedTasks / tasks.length;
   }
 
   // Verificar si la rutina está completada hoy
   bool get isCompletedToday {
+    // Uso sin '!'
     return tasks.every((task) => task.completed);
   }
 
   // Total de minutos estimados
   int get totalEstimatedMinutes {
+    // Solución al error de tipo de retorno: 'sum' es int y 'task.estimatedMinutes' es int (asumiendo RoutineTask definido)
     return tasks.fold(0, (sum, task) => sum + task.estimatedMinutes);
   }
 
   // Tareas completadas
   int get completedTasksCount {
+    // Uso sin '!'
     return tasks.where((task) => task.completed).length;
   }
 
   // Tareas pendientes
   int get pendingTasksCount {
+    // Uso sin '!'
     return tasks.where((task) => !task.completed).length;
   }
 
   // Reiniciar rutina para un nuevo día
   RoutineModel resetForNewDay() {
     return copyWith(
+      // Se corrigió el error de 'copyWith' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
       tasks: tasks
           .map((task) => task.copyWith(completed: false, completedAt: null))
           .toList(),
@@ -109,7 +116,9 @@ class RoutineModel {
   // Marcar tarea como completada
   RoutineModel markTaskCompleted(String taskId, bool completed) {
     final updatedTasks = tasks.map((task) {
+      // Se corrigió el error de 'id' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
       if (task.id == taskId) {
+        // Se corrigió el error de 'copyWith' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
         return task.copyWith(
           completed: completed,
           completedAt: completed ? DateTime.now() : null,
@@ -153,6 +162,72 @@ class RoutineModel {
     );
   }
 }
+
+// -----------------------------------------------------------------------------
+// CLASE AÑADIDA PARA RESOLVER "Undefined name 'RoutineTask'"
+// -----------------------------------------------------------------------------
+class RoutineTask {
+  final String id;
+  final String name;
+  final int estimatedMinutes;
+  final bool completed;
+  final DateTime? completedAt;
+  final String? icon;
+
+  RoutineTask({
+    required this.id,
+    required this.name,
+    this.estimatedMinutes = 5,
+    this.completed = false,
+    this.completedAt,
+    this.icon,
+  });
+
+  factory RoutineTask.fromMap(Map<String, dynamic> map) {
+    return RoutineTask(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      estimatedMinutes: map['estimatedMinutes'] ?? 5,
+      completed: map['completed'] ?? false,
+      completedAt: map['completedAt'] != null
+          ? (map['completedAt'] as Timestamp).toDate()
+          : null,
+      icon: map['icon'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'estimatedMinutes': estimatedMinutes,
+      'completed': completed,
+      'completedAt':
+          completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'icon': icon,
+    };
+  }
+
+  RoutineTask copyWith({
+    String? id,
+    String? name,
+    int? estimatedMinutes,
+    bool? completed,
+    DateTime? completedAt,
+    String? icon,
+  }) {
+    return RoutineTask(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
+      completed: completed ?? this.completed,
+      completedAt: completedAt ?? this.completedAt,
+      icon: icon ?? this.icon,
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 class RoutineSchedule {
   final List<int> daysOfWeek; // 1 = Lunes, 7 = Domingo

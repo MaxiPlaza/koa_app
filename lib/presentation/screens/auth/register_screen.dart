@@ -5,7 +5,7 @@ import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/core/theme/colors.dart';
 import 'package:koa_app/core/constants/constants/firebase_constants.dart';
 import 'login_screen.dart';
-import 'parent_dashboard.dart';
+import 'package:koa_app/presentation/screens/parent/parent_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

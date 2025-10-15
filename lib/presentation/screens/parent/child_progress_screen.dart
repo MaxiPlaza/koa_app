@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:koa_app/presentation/providers/child_provider.dart';
-import 'package:koa_app/presentation/providers/auth_provider.dart';
 import 'package:koa_app/core/theme/colors.dart';
 import 'package:koa_app/data/models/child_model.dart';
-import 'package:koa_app/data/models/report_model.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/presentation/widgets/parent/progress_chart.dart';
-import 'package:koa_app/presentation/widgets/parent/report_card.dart';
 import 'reports_screen.dart';
+import 'package:koa_app/presentation/widgets/common/custom_button.dart';
+import 'package:koa_app/presentation/widgets/common/loading_indicator.dart';
 
 class ChildProgressScreen extends StatefulWidget {
   final String? childId;
@@ -49,8 +48,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
       body: _isLoading
           ? const LoadingIndicator()
           : currentChild == null
-          ? _buildNoChildState()
-          : _buildProgressContent(currentChild),
+              ? _buildNoChildState()
+              : _buildProgressContent(currentChild),
     );
   }
 
@@ -61,7 +60,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         children: [
           const KovaMascot(size: 120, expression: KovaExpression.thinking),
           const SizedBox(height: 24),
-          Text(
+          const Text(
             'No se encontró el niño',
             style: TextStyle(
               fontSize: 18,
@@ -141,7 +140,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
 
   Widget _buildAppBarBackground(ChildModel child) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primaryGreen, AppColors.greenLight],
           begin: Alignment.topLeft,
@@ -150,7 +149,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
       ),
       child: Stack(
         children: [
-          Positioned(
+          const Positioned(
             right: 20,
             bottom: 20,
             child: KovaMascot(size: 80, expression: KovaExpression.celebrating),
@@ -247,7 +246,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -296,7 +295,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 20),
@@ -320,7 +319,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -329,7 +328,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -364,7 +363,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Habilidades Principales',
           style: TextStyle(
             fontSize: 16,
@@ -375,7 +374,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         const SizedBox(height: 12),
         ...topSkills.take(3).map((skill) {
           return _buildSkillProgressRow(skill.key, skill.value);
-        }).toList(),
+        }),
       ],
     );
   }
@@ -459,7 +458,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -468,7 +467,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -488,7 +487,7 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
           else
             ...recentSessions.take(5).map((session) {
               return _buildActivityItem(session);
-            }).toList(),
+            }),
           if (recentSessions.length > 5) ...[
             const SizedBox(height: 12),
             Center(
@@ -530,17 +529,17 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]),
+        border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.1),
+              color: AppColors.primaryGreen.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.play_arrow,
               color: AppColors.primaryGreen,
               size: 16,
@@ -567,12 +566,12 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '${session.score!.toStringAsFixed(1)}⭐',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppColors.success,

@@ -1,18 +1,22 @@
 // lib/core/services/mercado_pago_service.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' hide launchUrl;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class MercadoPagoService {
   static const String _baseUrl = 'https://api.mercadopago.com';
 
   // 🔐 REEMPLAZA ESTOS CON TUS CREDENCIALES REALES
-  static String _accessToken = 'APP_USR-7255591479184386-101309-dfab2f93f4c50a5b0be7afad89a433d6-1309579932';
+  static String _accessToken =
+      'APP_USR-7255591479184386-101309-dfab2f93f4c50a5b0be7afad89a433d6-1309579932';
   static String _publicKey = 'APP_USR-64000b7d-62ec-4fc2-b131-696a7943bd27';
 
   // Configurar credenciales (llamar desde main.dart)
-  static void configure({required String accessToken, required String publicKey}) {
+  static void configure(
+      {required String accessToken, required String publicKey}) {
     _accessToken = accessToken;
     _publicKey = publicKey;
   }
@@ -65,7 +69,8 @@ class MercadoPagoService {
           },
           'notification_url': 'https://kovapp.com/webhook/mercadopago',
           'statement_descriptor': 'KOA - Neurodesarrollo',
-          'external_reference': 'subscription_${DateTime.now().millisecondsSinceEpoch}_$userId',
+          'external_reference':
+              'subscription_${DateTime.now().millisecondsSinceEpoch}_$userId',
           'expires': false,
           'metadata': {
             'plan_id': planId,
@@ -93,7 +98,8 @@ class MercadoPagoService {
         print('❌ Error MP: ${response.statusCode} - ${response.body}');
         return {
           'success': false,
-          'error': 'Error creando preferencia: ${response.statusCode} - ${response.body}'
+          'error':
+              'Error creando preferencia: ${response.statusCode} - ${response.body}'
         };
       }
     } catch (e, stackTrace) {
@@ -148,7 +154,7 @@ class MercadoPagoService {
       // Fallback: intentar con url_launcher
       try {
         print('🔄 Intentando fallback con url_launcher...');
-        import 'package:url_launcher/url_launcher.dart';
+
         if (await canLaunchUrl(Uri.parse(initPoint))) {
           await launchUrl(Uri.parse(initPoint));
         } else {
@@ -197,13 +203,14 @@ class MercadoPagoService {
 
   // Buscar pagos por referencia externa
   static Future<Map<String, dynamic>> searchPaymentsByReference(
-      String externalReference,
-      ) async {
+    String externalReference,
+  ) async {
     try {
       print('🔍 Buscando pagos por referencia: $externalReference');
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/v1/payments/search?external_reference=$externalReference'),
+        Uri.parse(
+            '$_baseUrl/v1/payments/search?external_reference=$externalReference'),
         headers: {'Authorization': 'Bearer $_accessToken'},
       );
 
@@ -239,15 +246,16 @@ class MercadoPagoService {
 
         // Buscar pagos aprobados en los últimos 30 días
         final activePayment = payments.firstWhere(
-              (payment) =>
-          payment['status'] == 'approved' &&
+          (payment) =>
+              payment['status'] == 'approved' &&
               DateTime.parse(payment['date_created'])
                   .isAfter(DateTime.now().subtract(const Duration(days: 30))),
           orElse: () => null,
         );
 
         final hasActiveSubscription = activePayment != null;
-        print('📊 Usuario $userId - Suscripción activa: $hasActiveSubscription');
+        print(
+            '📊 Usuario $userId - Suscripción activa: $hasActiveSubscription');
 
         return hasActiveSubscription;
       }
@@ -259,7 +267,8 @@ class MercadoPagoService {
   }
 
   // Cancelar suscripción en Mercado Pago
-  static Future<Map<String, dynamic>> cancelSubscription(String subscriptionId) async {
+  static Future<Map<String, dynamic>> cancelSubscription(
+      String subscriptionId) async {
     try {
       print('🔄 Cancelando suscripción: $subscriptionId');
 

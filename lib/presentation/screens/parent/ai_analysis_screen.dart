@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:koa_app/presentation/providers/ai_provider.dart';
 import 'package:koa_app/presentation/providers/child_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+
 class AIAnalysisScreen extends StatelessWidget {
   const AIAnalysisScreen({super.key});
 
@@ -45,11 +46,13 @@ class AIAnalysisScreen extends StatelessWidget {
     }
 
     if (aiProvider.isAnalyzing) {
-      return _buildLoadingAnalysis();
+      // ⚠️ ERROR CORREGIDO: Añadido 'context' como argumento
+      return _buildLoadingAnalysis(context);
     }
 
     if (aiProvider.childAnalysis.isEmpty) {
-      return _buildFirstTimeAnalysis(aiProvider, childProvider);
+      // ⚠️ ERROR CORREGIDO: Añadido 'context' como argumento
+      return _buildFirstTimeAnalysis(aiProvider, childProvider, context);
     }
 
     return _buildAnalysisResults(aiProvider, childProvider, context);
@@ -71,7 +74,8 @@ class AIAnalysisScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingAnalysis() {
+  // ⚠️ ERROR CORREGIDO: Recibe BuildContext
+  Widget _buildLoadingAnalysis(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +88,11 @@ class AIAnalysisScreen extends StatelessWidget {
             'KOA está analizando el progreso...',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              // ⚠️ ERROR CORREGIDO: Usa el 'context' recibido
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
@@ -92,7 +100,11 @@ class AIAnalysisScreen extends StatelessWidget {
             'Esto puede tomar unos momentos',
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              // ⚠️ ERROR CORREGIDO: Usa el 'context' recibido
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -100,9 +112,11 @@ class AIAnalysisScreen extends StatelessWidget {
     );
   }
 
+  // ⚠️ ERROR CORREGIDO: Recibe BuildContext
   Widget _buildFirstTimeAnalysis(
     AIProvider aiProvider,
     ChildProvider childProvider,
+    BuildContext context, // ⚠️ ERROR CORREGIDO: Añadido BuildContext
   ) {
     return Center(
       child: Padding(
@@ -125,7 +139,11 @@ class AIAnalysisScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                // ⚠️ ERROR CORREGIDO: Usa el 'context' recibido
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 32),
@@ -168,16 +186,19 @@ class AIAnalysisScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Recomendaciones
+          // ⚠️ ERROR CORREGIDO: El método ya existe o se añade abajo
           _buildRecommendationsSection(aiProvider, context),
 
           const SizedBox(height: 24),
 
           // Generador de Historias
+          // ⚠️ ERROR CORREGIDO: El método ya existe o se añade abajo
           _buildStoryGenerator(aiProvider, childProvider, context),
 
           const SizedBox(height: 24),
 
           // Dificultades Adaptativas
+          // ⚠️ ERROR CORREGIDO: El método ya existe o se añade abajo
           _buildAdaptiveDifficulties(aiProvider, context),
         ],
       ),
@@ -202,8 +223,8 @@ class AIAnalysisScreen extends StatelessWidget {
                       Text(
                         'Resumen de Progreso',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -211,7 +232,7 @@ class AIAnalysisScreen extends StatelessWidget {
                         style: TextStyle(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -264,7 +285,7 @@ class AIAnalysisScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 20),
@@ -283,8 +304,11 @@ class AIAnalysisScreen extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-            ),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -306,12 +330,9 @@ class AIAnalysisScreen extends StatelessWidget {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            ...aiProvider.childAnalysis.entries
-                .map(
-                  (entry) =>
-                      _buildSkillProgress(entry.key, entry.value, context),
-                )
-                .toList(),
+            ...aiProvider.childAnalysis.entries.map(
+              (entry) => _buildSkillProgress(entry.key, entry.value, context),
+            ), // ⚠️ ERROR CORREGIDO: Se eliminó el .toList() innecesario
           ],
         ),
       ),
@@ -336,10 +357,10 @@ class AIAnalysisScreen extends StatelessWidget {
               Text(
                 '${(value * 100).toInt()}%',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.6),
-                ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
               ),
             ],
           ),
@@ -356,9 +377,64 @@ class AIAnalysisScreen extends StatelessWidget {
     );
   }
 
-  // ... continuaría con los otros métodos de construcción (recomendaciones, historias, dificultades)
+  // --- MÉTODOS AUXILIARES AÑADIDOS ---
 
-  // Métodos auxiliares para formateo
+  // ⚠️ ERROR CORREGIDO: Implementación mínima para _buildRecommendationsSection
+  Widget _buildRecommendationsSection(
+      AIProvider aiProvider, BuildContext context) {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Text('Sección de Recomendaciones (Pendiente de implementar)'),
+      ),
+    );
+  }
+
+  // ⚠️ ERROR CORREGIDO: Implementación mínima para _buildStoryGenerator
+  Widget _buildStoryGenerator(
+    AIProvider aiProvider,
+    ChildProvider childProvider,
+    BuildContext context,
+  ) {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Text(
+            'Sección de Generador de Historias (Pendiente de implementar)'),
+      ),
+    );
+  }
+
+  // ⚠️ ERROR CORREGIDO: Implementación mínima para _buildAdaptiveDifficulties
+  Widget _buildAdaptiveDifficulties(
+      AIProvider aiProvider, BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Dificultades Adaptativas',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...aiProvider.adaptiveDifficulties.entries.map((entry) => ListTile(
+                  title: Text(_formatSkillName(entry.key)),
+                  trailing: Text('Nivel ${entry.value}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading: const Icon(Icons.gamepad),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- MÉTODOS AUXILIARES PARA FORMATO ---
+
   String _formatSkillName(String key) {
     final names = {
       'cognitive_skills': 'Habilidades Cognitivas',
@@ -367,6 +443,9 @@ class AIAnalysisScreen extends StatelessWidget {
       'memory_capacity': 'Memoria y Retención',
       'pattern_recognition': 'Reconocimiento de Patrones',
       'social_understanding': 'Comprensión Social',
+      'memory': 'Juego de Memoria',
+      'emotions': 'Juego de Emociones',
+      'patterns': 'Juego de Patrones',
     };
     return names[key] ?? key;
   }

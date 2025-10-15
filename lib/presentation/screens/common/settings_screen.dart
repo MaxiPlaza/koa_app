@@ -1,13 +1,14 @@
 // lib/presentation/screens/common/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/providers/auth_provider.dart';
-import 'package:koa_app/core/providers/ai_provider.dart';
-import 'package:koa_app/core/providers/theme_provider.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/presentation/providers/ai_provider.dart';
+import 'package:koa_app/presentation/providers/theme_provider.dart';
 import 'package:koa_app/core/services/local_storage.dart';
 import 'package:koa_app/core/utils/helpers.dart';
 import 'package:koa_app/core/utils/formatters.dart';
-import 'package:koa_app/core/constants/app_constants.dart';
+import 'package:koa_app/core/constants/constants/app_constants.dart';
+import 'package:koa_app/data/models/user_model.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -372,7 +373,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
             if (isActive && price > 0) ...[
               const SizedBox(height: 12),
               Text(
@@ -380,9 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: const TextStyle(fontSize: 14),
               ),
             ],
-
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
@@ -454,16 +452,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             const Text(
               'KOA está aquí para ayudarte con el progreso de tus hijos, crear rutinas personalizadas y responder tus preguntas.',
               style: TextStyle(fontSize: 14),
             ),
-
             const SizedBox(height: 16),
-
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -588,9 +582,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         subtitle,
         style: TextStyle(color: color?.withOpacity(0.7) ?? Colors.grey[600]),
       ),
-      trailing: color == null
-          ? const Icon(Icons.arrow_forward_ios, size: 16)
-          : null,
+      trailing:
+          color == null ? const Icon(Icons.arrow_forward_ios, size: 16) : null,
       onTap: onTap,
     );
   }

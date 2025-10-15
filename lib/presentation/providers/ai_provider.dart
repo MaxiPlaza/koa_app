@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:koa_app/core/services/ai_service.dart';
-import '../data/models/game_session.dart';
+import 'package:koa_app/data/models/game_session.dart';
 import 'package:koa_app/data/models/child_model.dart';
 
 class AIProvider with ChangeNotifier {
@@ -69,7 +69,7 @@ class AIProvider with ChangeNotifier {
       print('💡 Recomendaciones: ${_recommendations.length}');
     } catch (e) {
       print('❌ Error en análisis de IA: $e');
-      _childAnalysis = _aiService._getDefaultAnalysis();
+      _childAnalysis = _aiService.getDefaultAnalysis();
       _recommendations = [];
     } finally {
       _isAnalyzing = false;
@@ -115,7 +115,7 @@ class AIProvider with ChangeNotifier {
       );
     } catch (e) {
       print('❌ Error generando historia: $e');
-      _generatedStory = _aiService._getFallbackStory(childName, theme);
+      _generatedStory = _aiService.getFallbackStory(childName, theme);
     } finally {
       _isAnalyzing = false;
       notifyListeners();

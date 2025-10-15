@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:koa_app/data/models/report_model.dart';
+import 'dart:convert';
 
 class LocalStorage {
   static const String _databaseName = 'KoaApp.db';

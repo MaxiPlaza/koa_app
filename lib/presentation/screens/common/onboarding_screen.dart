@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../core/theme/colors.dart';
-import '../core/constants/firebase_constants.dart';
-import 'login_screen.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/presentation/screens/auth/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

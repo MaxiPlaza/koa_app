@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/core/theme/app_theme.dart';
 
 class ThemeProvider with ChangeNotifier {
   static const String themeKey = 'theme_mode';

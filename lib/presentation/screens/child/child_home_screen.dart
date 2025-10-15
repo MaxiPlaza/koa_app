@@ -120,7 +120,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                   ),
                 );
               },
-              child: Text(
+              child: const Text(
                 'Ver Todas',
                 style: TextStyle(
                   color: AppColors.secondaryPurple,
@@ -158,7 +158,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                   MaterialPageRoute(builder: (context) => const GamesScreen()),
                 );
               },
-              child: Text(
+              child: const Text(
                 'Ver Más',
                 style: TextStyle(
                   color: AppColors.secondaryPurple,
@@ -234,9 +234,10 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen.withOpacity(0.1),
+        color: AppColors.primaryGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+        border:
+            Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

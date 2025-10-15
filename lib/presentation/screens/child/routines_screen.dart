@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/models/child_model.dart';
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/child_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 import 'package:koa_app/presentation/providers/routine_provider.dart';
 import 'package:koa_app/presentation/providers/child_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:koa_app/presentation/widgets/common/custom_button.dart';
-import 'package:koa_app/presentation/widgets/routines/routine_card.dart';
-import 'package:koa_app/presentation/widgets/routines/routine_progress_widget.dart';
-import 'package:koa_app/presentation/screens/routines/add_edit_routine_screen.dart';
-import 'package:koa_app/presentation/screens/routines/routine_detail_screen.dart';
+import 'package:koa_app/presentation/widgets/child/routine_card.dart';
+import 'package:koa_app/presentation/widgets/child/routine_progress_widget.dart';
+import 'package:koa_app/presentation/screens/common/add_edit_routine_screen.dart';
+import 'package:koa_app/presentation/screens/child/routine_detail_screen.dart';
 
 class RoutinesScreen extends StatefulWidget {
   const RoutinesScreen({super.key});

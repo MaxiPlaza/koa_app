@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:koa_app/core/models/child_model.dart';
-import 'package:koa_app/core/models/user_model.dart';
 
 class ReportModel {
   final String id;

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ChildModel {
   final String id;
   final String name;
@@ -138,36 +140,43 @@ class ChildSettings {
 
 class Session {
   final String? activityName;
+  final String? activityId; // <--- CAMBIO: Agregado para GameSession mapping
   final DateTime? date;
   final int? duration; // en minutos
   final double? score;
+  final bool? completed; // <--- CAMBIO: Agregado para cálculo de completionRate
   final Map<String, dynamic>? metadata;
 
   Session({
     this.activityName,
+    this.activityId, // <--- Actualizar constructor
     this.date,
     this.duration,
     this.score,
+    this.completed, // <--- Actualizar constructor
     this.metadata,
   });
 
   factory Session.fromMap(Map<String, dynamic> map) {
     return Session(
       activityName: map['activityName'],
+      activityId: map['activityId'], // <--- Actualizar fromMap
       date: map['date'] != null ? (map['date'] as Timestamp).toDate() : null,
       duration: map['duration'],
       score: (map['score'] ?? 0.0).toDouble(),
+      completed: map['completed'], // <--- Actualizar fromMap
       metadata: Map<String, dynamic>.from(map['metadata'] ?? {}),
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'activityName': activityName,
+      'activityId': activityId,
       'date': date != null ? Timestamp.fromDate(date!) : null,
       'duration': duration,
       'score': score,
-      'metadata': metadata ?? {},
+      'completed': completed,
+      'metadata': metadata,
     };
   }
 }

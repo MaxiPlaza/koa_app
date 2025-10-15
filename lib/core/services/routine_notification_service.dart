@@ -2,6 +2,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:koa_app/data/models/routine_model.dart';
+import 'package:flutter/material.dart';
+// 🛠️ NECESARIO: Importar para Int64List (Tipo para vibrationPattern)
+import 'dart:typed_data';
 
 class RoutineNotificationService {
   static final RoutineNotificationService _instance =
@@ -68,7 +71,7 @@ class RoutineNotificationService {
       '🦊 Recordatorio de KOA',
       'Es casi hora de: ${routine.name}',
       scheduledTime,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           'routine_channel',
           'Recordatorios de Rutinas',
@@ -76,11 +79,12 @@ class RoutineNotificationService {
               'Notificaciones para recordar rutinas diarias de KOA',
           importance: Importance.high,
           priority: Priority.high,
-          sound: RawResourceAndroidNotificationSound('notification_sound'),
+          sound:
+              const RawResourceAndroidNotificationSound('notification_sound'),
           enableVibration: true,
           vibrationPattern: Int64List.fromList([0, 500, 500, 500]),
         ),
-        iOS: DarwinNotificationDetails(
+        iOS: const DarwinNotificationDetails(
           sound: 'default',
           presentAlert: true,
           presentBadge: true,
