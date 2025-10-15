@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../services/ai_service.dart';
+import 'package:koa_app/core/services/ai_service.dart';
 import '../data/models/game_session.dart';
-import '../data/models/child_model.dart';
+import 'package:koa_app/data/models/child_model.dart';
 
 class AIProvider with ChangeNotifier {
   final AIService _aiService = AIService();

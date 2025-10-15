@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/common/kova_mascot.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import '../../providers/child_provider.dart';
 import '../../providers/ai_provider.dart'; // ✅ Import agregado
 
@@ -157,8 +157,7 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
     });
 
     // Verificar si el elemento es correcto
-    final isCorrect =
-        _userPattern.length <= _pattern.length &&
+    final isCorrect = _userPattern.length <= _pattern.length &&
         _userPattern[_userPattern.length - 1].id ==
             _pattern[_userPattern.length - 1].id;
 
@@ -321,22 +320,26 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
                       children: [
                         Text(
                           'Pattern Sequence',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         // ✅ Actualizado para mostrar progreso dinámico
                         Text(
                           'Nivel $_currentLevel/$_maxLevels',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(color: Colors.white70),
                         ),
                         // ✅ Mostrar nivel de dificultad
                         Text(
                           'Dificultad: $_currentDifficulty',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: Colors.white70),
                         ),
                       ],
@@ -380,11 +383,10 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
                     Text(
                       'Patrón a Repetir',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
-
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -399,8 +401,7 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color:
-                                      _isShowingPattern ||
+                                  color: _isShowingPattern ||
                                           i < _userPattern.length
                                       ? _getItemColor(_pattern[i])
                                       : Colors.grey.shade300,
@@ -443,8 +444,8 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
                     Text(
                       'Tu Patrón',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
 
@@ -487,11 +488,11 @@ class _PatternGameScreenState extends State<PatternGameScreen> {
                       child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1.0,
-                            ),
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 1.0,
+                        ),
                         itemCount: _availableItems.length,
                         itemBuilder: (context, index) {
                           final item = _availableItems[index];
@@ -684,9 +685,9 @@ class PatternGameCompleteDialog extends StatelessWidget {
             Text(
               'Nivel $difficulty • $levelsCompleted/$maxLevels niveles',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
 
             const SizedBox(height: 16),

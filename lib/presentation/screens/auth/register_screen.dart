@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../core/theme/colors.dart';
-import '../core/constants/firebase_constants.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/core/constants/constants/firebase_constants.dart';
 import 'login_screen.dart';
 import 'parent_dashboard.dart';
 

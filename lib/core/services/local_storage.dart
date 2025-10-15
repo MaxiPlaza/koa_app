@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:koa_app/core/models/report_model.dart';
+import 'package:koa_app/data/models/report_model.dart';
 
 class LocalStorage {
   static const String _databaseName = 'KoaApp.db';
@@ -139,11 +139,14 @@ class LocalStorage {
     required Map<String, dynamic> progressData,
   }) async {
     final db = await database;
-    await db.insert('report_cache', {
-      'childId': childId,
-      'progressData': _encodeJson(progressData),
-      'lastUpdated': DateTime.now().millisecondsSinceEpoch,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'report_cache',
+        {
+          'childId': childId,
+          'progressData': _encodeJson(progressData),
+          'lastUpdated': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Map<String, dynamic>?> getCachedProgressData(String childId) async {
@@ -177,10 +180,13 @@ class LocalStorage {
 
   Future<void> saveSetting(String key, dynamic value) async {
     final db = await database;
-    await db.insert('app_settings', {
-      'key': key,
-      'value': value.toString(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'app_settings',
+        {
+          'key': key,
+          'value': value.toString(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<dynamic> getSetting(String key) async {

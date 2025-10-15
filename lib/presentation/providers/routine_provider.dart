@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:koa_app/core/models/routine_model.dart';
-import 'package:koa_app/core/services/routine_repository.dart';
+import 'package:koa_app/data/models/routine_model.dart';
+import 'package:koa_app/data/repositories/routine_repository.dart';
 
 class RoutineProvider with ChangeNotifier {
   final RoutineRepository _routineRepository;

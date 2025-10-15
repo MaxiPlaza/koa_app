@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 class AppColors {
   // Verde principal
   static const Color primaryGreen = Color(0xFF10B981);

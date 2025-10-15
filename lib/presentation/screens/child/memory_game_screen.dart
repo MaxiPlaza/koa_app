@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/common/kova_mascot.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import '../../providers/child_provider.dart';
-import '../../data/models/activity_model.dart';
 import '../../providers/ai_provider.dart'; // ✅ Import agregado
 
 class MemoryGameScreen extends StatefulWidget {
@@ -215,22 +214,26 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
                       children: [
                         Text(
                           'Memory Cards',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         // ✅ Actualizado para mostrar número dinámico
                         Text(
                           'Movimientos: $_moves | Parejas: $_matches/$_totalPairs',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(color: Colors.white70),
                         ),
                         // ✅ Mostrar nivel de dificultad
                         Text(
                           'Nivel: $_currentDifficulty',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: Colors.white70),
                         ),
                       ],
@@ -332,8 +335,8 @@ class MemoryCardWidget extends StatelessWidget {
           color: card.isMatched
               ? Colors.green.withOpacity(0.3)
               : card.isFlipped
-              ? Colors.white
-              : Theme.of(context).colorScheme.primary,
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.primary,
           border: Border.all(
             color: card.isMatched ? Colors.green : Colors.grey.shade300,
             width: 2,
@@ -403,9 +406,9 @@ class GameCompleteDialog extends StatelessWidget {
             Text(
               'Nivel $difficulty • Eficiencia: $efficiency',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
 
             const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/common/kova_mascot.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import '../../providers/child_provider.dart';
 import '../../providers/ai_provider.dart'; // ✅ Import agregado
 
@@ -262,22 +262,26 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                       children: [
                         Text(
                           'Emotional Match',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         // ✅ Actualizado para mostrar número dinámico
                         Text(
                           'Aciertos: $_correctMatches/${_situationCards.length}',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(color: Colors.white70),
                         ),
                         // ✅ Mostrar nivel de dificultad
                         Text(
                           'Nivel: $_currentDifficulty',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: Colors.white70),
                         ),
                       ],
@@ -319,8 +323,8 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                     Text(
                       'Emociones',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Expanded(
@@ -328,11 +332,11 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                       child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1.2,
-                            ),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 1.2,
+                        ),
                         itemCount: _emotionCards.length,
                         itemBuilder: (context, index) {
                           final emotion = _emotionCards[index];
@@ -351,8 +355,8 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                     Text(
                       'Situaciones',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Expanded(
@@ -360,11 +364,11 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                       child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1.5,
-                            ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.5,
+                        ),
                         itemCount: _situationCards.length,
                         itemBuilder: (context, index) {
                           final situation = _situationCards[index];
@@ -397,9 +401,9 @@ class _EmotionalGameScreenState extends State<EmotionalGameScreen> {
                     Text(
                       _isCorrect ? '¡Correcto! 🎉' : 'Intenta otra vez 💪',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: _isCorrect ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: _isCorrect ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
@@ -605,9 +609,9 @@ class EmotionalGameCompleteDialog extends StatelessWidget {
             Text(
               'Nivel de Dificultad: $difficulty',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
 

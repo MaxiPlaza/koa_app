@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../widgets/child/activity_card.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/presentation/widgets/child/activity_card.dart';
+import 'package:koa_app/data/models/activity_model.dart';
 import '../../providers/child_provider.dart';
-import '../../providers/ai_provider.dart'; // ✅ Import agregado
-import '../../data/models/activity_model.dart'; // ✅ Import agregado
+import '../../providers/ai_provider.dart'; // ✅ Import agregado // ✅ Import agregado
 
 class GamesScreen extends StatelessWidget {
   const GamesScreen({super.key});
@@ -43,15 +43,17 @@ class GamesScreen extends StatelessWidget {
                       children: [
                         Text(
                           '¡Hola ${currentChild?.name ?? "Amigo"}!',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         Text(
                           'Elige un juego divertido',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(color: Colors.white70),
                         ),
                       ],
@@ -70,7 +72,9 @@ class GamesScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Juegos Divertidos',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
@@ -82,11 +86,11 @@ class GamesScreen extends StatelessWidget {
                           return GridView(
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 16,
-                                  mainAxisSpacing: 16,
-                                  childAspectRatio: 0.9,
-                                ),
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.9,
+                            ),
                             children: [
                               // ✅ Memory Cards con dificultad adaptativa
                               ActivityCard(

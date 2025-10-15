@@ -1,7 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 
 class RoutineNotificationService {
   static final RoutineNotificationService _instance =
@@ -23,10 +23,10 @@ class RoutineNotificationService {
     // Configuración para iOS
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
@@ -52,8 +52,7 @@ class RoutineNotificationService {
     // Calcular la hora de la notificación (minutos antes del inicio)
     final notificationTime = TimeOfDay(
       hour: routine.schedule.startTime.hour,
-      minute:
-          routine.schedule.startTime.minute -
+      minute: routine.schedule.startTime.minute -
           routine.schedule.reminderMinutesBefore,
     );
 

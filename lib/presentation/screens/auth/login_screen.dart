@@ -3,13 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:koa_app/presentation/providers/auth_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/core/theme/colors.dart';
-import 'package:koa_app/core/constants/constants/';
-import '../providers/auth_provider.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../core/theme/colors.dart';
-import '../core/constants/firebase_constants.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/core/constants/constants/firebase_constants.dart';
 import 'register_screen.dart';
-import 'child_home_screen.dart';
+import 'package:koa_app/presentation/screens/child/child_home_screen.dart';
 import 'parent_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {

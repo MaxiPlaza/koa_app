@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../data/models/child_model.dart';
-import '../data/models/activity_model.dart';
-import '../data/models/game_session.dart';
+import 'package:koa_app/data/models/child_model.dart';
+import 'package:koa_app/data/models/activity_model.dart';
 
 class ChildProvider with ChangeNotifier {
   ChildModel? _currentChild;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/child_provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/common/kova_mascot.dart';
-import '../widgets/child/activity_card.dart';
-import '../widgets/child/routine_widget.dart';
-import '../core/theme/colors.dart';
-import '../core/constants/firebase_constants.dart';
+import 'package:koa_app/presentation/providers/child_provider.dart';
+import 'package:koa_app/presentation/providers/auth_provider.dart';
+import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
+import 'package:koa_app/core/theme/colors.dart';
+import 'package:koa_app/core/constants/constants/firebase_constants.dart';
+import 'package:koa_app/presentation/widgets/child/activity_card.dart';
+import 'package:koa_app/presentation/widgets/child/routine_card.dart';
 import 'games_screen.dart';
 import 'routines_screen.dart';
 
@@ -80,9 +80,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
               Text(
                 '¡Hola, $childName!',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontSize: 24,
-                  color: AppColors.textDark,
-                ),
+                      fontSize: 24,
+                      color: AppColors.textDark,
+                    ),
               ),
               Text(
                 '¿Qué vamos a aprender hoy?',
@@ -107,9 +107,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
             Text(
               'Tus Rutinas de Hoy',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontSize: 20,
-                color: AppColors.textDark,
-              ),
+                    fontSize: 20,
+                    color: AppColors.textDark,
+                  ),
             ),
             TextButton(
               onPressed: () {
@@ -147,9 +147,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
             Text(
               'Actividades Divertidas',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontSize: 20,
-                color: AppColors.textDark,
-              ),
+                    fontSize: 20,
+                    color: AppColors.textDark,
+                  ),
             ),
             TextButton(
               onPressed: () {
@@ -253,9 +253,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                 Text(
                   '¡Buen trabajo hoy!',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textDark,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 Text(
                   'Has completado $totalStars actividades',
@@ -267,9 +267,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                   Text(
                     'Tiempo total: ${(totalPlayTime / 60).toStringAsFixed(0)} min',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textGray,
-                      fontSize: 14,
-                    ),
+                          color: AppColors.textGray,
+                          fontSize: 14,
+                        ),
                   ),
               ],
             ),
@@ -303,19 +303,19 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textDark,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'OpenDyslexic',
-                ),
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'OpenDyslexic',
+                    ),
                 textAlign: TextAlign.center,
               ),
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textGray,
-                  fontSize: 12,
-                  fontFamily: 'OpenDyslexic',
-                ),
+                      color: AppColors.textGray,
+                      fontSize: 12,
+                      fontFamily: 'OpenDyslexic',
+                    ),
                 textAlign: TextAlign.center,
               ),
             ],

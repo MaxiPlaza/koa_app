@@ -1,4 +1,4 @@
-import 'package:koa_app/core/models/routine_model.dart';
+import 'package:koa_app/data/models/routine_model.dart';
 
 abstract class RoutineRepository {
   Future<List<RoutineModel>> getRoutinesByChildId(String childId);
