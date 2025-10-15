@@ -310,7 +310,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         children: [
           const KovaMascot(expression: KovaExpression.thinking, size: 120),
           const SizedBox(height: 24),
-          Text(
+          const Text(
             'No hay reportes generados',
             style: TextStyle(
               fontSize: 18,
@@ -319,7 +319,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             'Comienza generando tu primer reporte\nde progreso para ver el análisis detallado.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textGray),
@@ -355,11 +355,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
               if (_reports.any((report) => !report.isSynced))
                 Row(
                   children: [
-                    Icon(Icons.cloud_off, size: 16, color: AppColors.warning),
+                    const Icon(Icons.cloud_off,
+                        size: 16, color: AppColors.warning),
                     const SizedBox(width: 4),
                     Text(
                       '${_reports.where((report) => !report.isSynced).length} no sincronizado',
-                      style: TextStyle(color: AppColors.warning, fontSize: 12),
+                      style: const TextStyle(
+                          color: AppColors.warning, fontSize: 12),
                     ),
                   ],
                 ),

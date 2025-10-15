@@ -4,8 +4,6 @@ import 'package:koa_app/presentation/providers/child_provider.dart';
 import 'package:koa_app/presentation/providers/auth_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/core/theme/colors.dart';
-import 'package:koa_app/core/constants/constants/firebase_constants.dart';
-import 'package:koa_app/presentation/widgets/child/activity_card.dart';
 import 'package:koa_app/presentation/widgets/child/routine_card.dart';
 import 'games_screen.dart';
 import 'routines_screen.dart';
@@ -36,7 +34,6 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final childProvider = Provider.of<ChildProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
     final currentChild = childProvider.currentChild;
 
     return Scaffold(
@@ -132,7 +129,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        const RoutineWidget(), // Usar el widget de rutinas existente
+        const RoutineCard(), // Usar el widget de rutinas existente
       ],
     );
   }

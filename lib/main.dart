@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:koa_app/core/theme/app_theme.dart';
 
 // Providers
 import 'package:koa_app/presentation/providers/theme_provider.dart';
@@ -50,8 +49,8 @@ void main() async {
 
   try {
     await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform,
-    );
+        // options: DefaultFirebaseOptions.currentPlatform,
+        );
     print('✅ Firebase inicializado correctamente');
   } catch (e) {
     print('❌ Error inicializando Firebase: $e');
@@ -287,10 +286,10 @@ class MyApp extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: () =>
                                     Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      '/child_home',
-                                      (route) => false,
-                                    ),
+                                  context,
+                                  '/child_home',
+                                  (route) => false,
+                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(
                                     context,
@@ -439,11 +438,12 @@ class AppNavigator {
   static Future<T?> pushAndRemoveUntil<T>(
     String routeName, {
     Object? arguments,
-  }) => navigatorKey.currentState!.pushNamedAndRemoveUntil<T>(
-    routeName,
-    (route) => false,
-    arguments: arguments,
-  );
+  }) =>
+      navigatorKey.currentState!.pushNamedAndRemoveUntil<T>(
+        routeName,
+        (route) => false,
+        arguments: arguments,
+      );
 
   static Future<T?> showDialog<T>({
     required Widget Function(BuildContext) builder,
@@ -527,9 +527,8 @@ extension AccessibilityExtension on BuildContext {
 
   Widget withAccessibility(Widget child) {
     return AnimatedContainer(
-      duration: reduceAnimations
-          ? Duration.zero
-          : const Duration(milliseconds: 300),
+      duration:
+          reduceAnimations ? Duration.zero : const Duration(milliseconds: 300),
       child: MediaQuery(
         data: MediaQuery.of(this).copyWith(
           textScaleFactor: isDyslexicFont

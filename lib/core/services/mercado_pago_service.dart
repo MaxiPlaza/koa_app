@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' hide launchUrl;
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:url_launcher/url_launcher.dart';
 
 class MercadoPagoService {
   static const String _baseUrl = 'https://api.mercadopago.com';
