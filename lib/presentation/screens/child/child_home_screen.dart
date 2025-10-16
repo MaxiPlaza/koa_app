@@ -5,6 +5,8 @@ import 'package:koa_app/presentation/providers/auth_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/core/theme/colors.dart';
 import 'package:koa_app/presentation/widgets/child/routine_card.dart';
+import 'package:koa_app/data/models/routine_model.dart';
+import 'package:koa_app/presentation/screens/child/routine_detail_screen.dart'; // <<-- IMPORTADO
 import 'games_screen.dart';
 import 'routines_screen.dart';
 
@@ -95,6 +97,19 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
   }
 
   Widget _buildRoutinesSection(BuildContext context) {
+    final childProvider = Provider.of<ChildProvider>(context);
+
+    // **NOTA IMPORTANTE: Esta línea requiere que la propiedad 'routines'**
+    // **exista en tu 'ChildModel' (en child_model.dart) para que compile.**
+    final List<RoutineModel> allRoutines = (childProvider.currentChild != null
+        // Asumiendo que childProvider.currentChild!.routines es List<RoutineModel>
+        ? childProvider.currentChild!.routines
+        : []) as List<RoutineModel>;
+
+    final RoutineModel? nextRoutine = allRoutines.isNotEmpty
+        ? allRoutines.first // Tomar la primera rutina disponible
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -129,7 +144,42 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        const RoutineCard(), // Usar el widget de rutinas existente
+        if (nextRoutine != null)
+          RoutineCard(
+            routine: nextRoutine,
+            onTap: () {
+              // <<-- IMPLEMENTACIÓN DE NAVEGACIÓN CORREGIDA
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      RoutineDetailScreen(routine: nextRoutine),
+                ),
+              );
+            },
+          )
+        else
+          // Mensaje si no hay rutinas para el día
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.blueLight.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline,
+                    color: AppColors.primaryGreen),
+                const SizedBox(width: 8),
+                Text(
+                  'No hay rutinas programadas para hoy.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textDark,
+                      ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

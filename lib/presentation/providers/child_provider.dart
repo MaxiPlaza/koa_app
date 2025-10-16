@@ -1,18 +1,87 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart'; // Mantener el import para Provider
 import 'package:koa_app/data/models/child_model.dart';
-import 'package:koa_app/data/models/game_session.dart';
+import 'package:koa_app/data/models/game_session.dart'; // Asumiendo que GameSession es el modelo para sessions
+// Importa las constantes de Firebase
+import 'package:koa_app/core/constants/constants/firebase_constants.dart';
 
 class ChildProvider with ChangeNotifier {
   ChildModel? _currentChild;
+  // ADDED: Lista de niños para resolver los errores en routines_screen.dart
+  List<ChildModel> _children = [];
   List<GameSession> _gameSessions = [];
   bool _isLoading = false;
+  String? _error;
 
   ChildModel? get currentChild => _currentChild;
+  List<ChildModel> get children => _children; // Getter corregido
   List<GameSession> get gameSessions => _gameSessions;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // 🔴 IMPORTANTE: FUNCIÓN MARCADOR DE POSICIÓN
+  // DEBES REEMPLAZAR ESTA FUNCIÓN CON TU LÓGICA DE AUTENTICACIÓN REAL
+  // (e.g., usando FirebaseAuth.instance.currentUser!.uid)
+  String _getCurrentUserId() {
+    // El ID del padre debe obtenerse de tu AuthProvider
+    return 'YOUR_CURRENT_PARENT_ID';
+  }
+
+// ----------------------------------------------------------------------
+// MARKER: LÓGICA DE CARGA DE NIÑOS DESDE FIRESTORE (IMPLEMENTACIÓN COMPLETA)
+// ----------------------------------------------------------------------
+
+  Future<void> loadChildren() async {
+    final parentId = _getCurrentUserId();
+
+    // Validación básica
+    if (parentId.isEmpty || parentId == 'YOUR_CURRENT_PARENT_ID') {
+      _error = 'Error: ID del padre no disponible o no configurado.';
+      if (kDebugMode) print(_error);
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Consulta a la colección 'children', filtrando por 'parentId'
+      final querySnapshot = await _firestore
+          .collection(FirebaseConstants.childrenCollection)
+          .where(FirebaseConstants.parentIdField, isEqualTo: parentId)
+          .orderBy(FirebaseConstants.createdAtField, descending: false)
+          .get();
+
+      _children = querySnapshot.docs.map((doc) {
+        // Mapear el ID del documento al campo 'id' de ChildModel
+        final data = doc.data();
+        final childMap = Map<String, dynamic>.from(data)..['id'] = doc.id;
+        return ChildModel.fromMap(childMap);
+      }).toList();
+
+      // Si es la primera carga y hay niños, establecer el primer niño como el actual
+      if (_children.isNotEmpty && _currentChild == null) {
+        _currentChild = _children.first;
+      }
+      _error = null;
+    } catch (e) {
+      _error = 'Error al cargar los niños: $e';
+      if (kDebugMode) {
+        print(_error);
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+// ----------------------------------------------------------------------
+// MARKER: MÉTODOS RELACIONADOS CON EL NIÑO
+// ----------------------------------------------------------------------
 
   Future<void> setCurrentChild(ChildModel child) async {
     _currentChild = child;
@@ -22,16 +91,20 @@ class ChildProvider with ChangeNotifier {
 
   Future<void> loadChildData() async {
     if (_currentChild == null) {
-      // Lógica opcional: Si no hay un niño seleccionado, podrías intentar cargar
-      // el niño principal del usuario o simplemente retornar.
-      if (kDebugMode) {
-        print('No hay un niño actual para cargar datos.');
+      // Intenta cargar los niños si no hay uno actual
+      if (_children.isEmpty) {
+        await loadChildren();
+        if (_currentChild == null) return;
+      } else {
+        return;
       }
-      return;
     }
     await _loadGameSessions();
   }
-  // -
+
+// ----------------------------------------------------------------------
+// MARKER: LÓGICA DE CARGA DE SESIONES DE JUEGO
+// ----------------------------------------------------------------------
 
   Future<void> _loadGameSessions() async {
     if (_currentChild == null) return;
@@ -40,10 +113,12 @@ class ChildProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
+      // Consulta a la colección 'sessions', filtrando por 'childId'
       final querySnapshot = await _firestore
-          .collection('sessions')
-          .where('childId', isEqualTo: _currentChild!.id)
-          .orderBy('startTime', descending: true)
+          .collection(FirebaseConstants.sessionsCollection)
+          .where(FirebaseConstants.childIdField, isEqualTo: _currentChild!.id)
+          .orderBy('startTime',
+              descending: true) // 'startTime' no está en constantes
           .limit(50)
           .get();
 
@@ -60,6 +135,10 @@ class ChildProvider with ChangeNotifier {
     }
   }
 
+// ----------------------------------------------------------------------
+// MARKER: LÓGICA DE GUARDAR SESIONES Y ACTUALIZAR PROGRESO
+// ----------------------------------------------------------------------
+
   Future<void> saveGameSession({
     required String activityId,
     required int score,
@@ -73,9 +152,7 @@ class ChildProvider with ChangeNotifier {
         id: 'session_${DateTime.now().millisecondsSinceEpoch}',
         childId: _currentChild!.id,
         activityId: activityId,
-        startTime: DateTime.now().subtract(
-          const Duration(minutes: 5),
-        ), // Ejemplo
+        startTime: DateTime.now().subtract(const Duration(minutes: 5)),
         endTime: DateTime.now(),
         score: score,
         stars: stars,
@@ -84,11 +161,10 @@ class ChildProvider with ChangeNotifier {
       );
 
       await _firestore
-          .collection('sessions')
+          .collection(FirebaseConstants.sessionsCollection)
           .doc(session.id)
           .set(session.toMap());
 
-      // Actualizar progreso del niño
       await _updateChildProgress(session);
 
       _gameSessions.insert(0, session);
@@ -104,18 +180,19 @@ class ChildProvider with ChangeNotifier {
     if (_currentChild == null) return;
 
     try {
-      final childRef = _firestore.collection('children').doc(_currentChild!.id);
+      final childRef = _firestore
+          .collection(FirebaseConstants.childrenCollection)
+          .doc(_currentChild!.id);
 
+      // Usando las constantes para los campos de fecha y actualización
       await childRef.update({
         'progress.totalPlayTime': FieldValue.increment(
           session.durationInMinutes,
         ),
         'progress.totalStars': FieldValue.increment(session.stars),
         'progress.lastSession': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
+        FirebaseConstants.updatedAtField: Timestamp.now(),
       });
-
-      // Aquí podrías agregar lógica para actualizar skillLevels basado en el performance
     } catch (e) {
       if (kDebugMode) {
         print('Error updating child progress: $e');
@@ -130,8 +207,6 @@ class ChildProvider with ChangeNotifier {
   }
 
   double getProgressForSkill(String skill) {
-    // Lógica para calcular progreso por habilidad
-    // Basado en las sesiones de juego
-    return 0.7; // Ejemplo
+    return 0.7;
   }
 }

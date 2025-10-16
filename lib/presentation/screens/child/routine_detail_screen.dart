@@ -74,7 +74,8 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: _getColorFromHex(widget.routine.color).withOpacity(0.1),
+                color: _getColorFromHex(widget.routine.color)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -123,8 +124,8 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: widget.routine.isActive
-                ? Colors.green.withOpacity(0.1)
-                : Colors.grey.withOpacity(0.1),
+                ? Colors.green.withValues(alpha: 0.1)
+                : Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -142,7 +143,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
@@ -250,7 +251,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                   );
                 },
               );
-            }).toList(),
+            }),
             if (sortedTasks.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),

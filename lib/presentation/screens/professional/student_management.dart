@@ -114,7 +114,7 @@ class _StudentManagementState extends State<StudentManagement> {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -249,7 +249,10 @@ class _StudentManagementState extends State<StudentManagement> {
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.6),
+                                    )
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                             ),
                           ],
@@ -290,15 +293,13 @@ class _StudentManagementState extends State<StudentManagement> {
                         ),
                   ),
                   const SizedBox(height: 16),
-                  ...analysis.entries
-                      .map(
-                        (entry) => _buildSkillProgress(
-                          entry.key,
-                          entry.value,
-                          context,
-                        ),
-                      )
-                      .toList(),
+                  ...analysis.entries.map(
+                    (entry) => _buildSkillProgress(
+                      entry.key,
+                      entry.value,
+                      context,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -320,13 +321,10 @@ class _StudentManagementState extends State<StudentManagement> {
                           ),
                     ),
                     const SizedBox(height: 12),
-                    ...aiProvider.recommendations
-                        .take(3)
-                        .map(
+                    ...aiProvider.recommendations.take(3).map(
                           (recommendation) =>
                               _buildRecommendationCard(recommendation, context),
-                        )
-                        .toList(),
+                        ),
                   ],
                 ),
               ),
@@ -583,7 +581,8 @@ class _StudentManagementState extends State<StudentManagement> {
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      color: _getRecommendationColor(recommendation.priority).withOpacity(0.1),
+      color: _getRecommendationColor(recommendation.priority)
+          .withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -662,8 +661,10 @@ class _StudentManagementState extends State<StudentManagement> {
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
           ),
           Slider(
@@ -707,7 +708,10 @@ class _StudentManagementState extends State<StudentManagement> {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
               ),
         ),
       ],
@@ -734,7 +738,10 @@ class _StudentManagementState extends State<StudentManagement> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -816,14 +823,12 @@ class _StudentManagementState extends State<StudentManagement> {
                       ),
                 ),
                 const SizedBox(height: 8),
-                ...session.performance.entries
-                    .map(
-                      (entry) => _buildSessionDetailRow(
-                        _formatPerformanceKey(entry.key),
-                        entry.value.toString(),
-                      ),
-                    )
-                    .toList(),
+                ...session.performance.entries.map(
+                  (entry) => _buildSessionDetailRow(
+                    _formatPerformanceKey(entry.key),
+                    entry.value.toString(),
+                  ),
+                ),
               ],
             ],
           ),
@@ -1002,6 +1007,7 @@ class _StudentManagementState extends State<StudentManagement> {
       settings: ChildSettings(),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      routines: const [], // SOLUCIÓN: El parámetro 'routines' es requerido.
     );
   }
 

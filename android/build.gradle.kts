@@ -1,6 +1,7 @@
-// android/build.gradle.kts
+// Archivo de configuración global de Gradle (Android)
 plugins {
-    id("com.google.gms.google-services") version "4.4.0" apply false // ✅ AGREGAR ESTA LÍNEA EXACTA
+    // Definición de plugins global (como google-services)
+    id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
 buildscript {
@@ -9,9 +10,15 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        // Versión del plugin de Android Gradle (compatible con el Java 8 que ya configuramos)
         classpath("com.android.tools.build:gradle:8.1.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
-        classpath("com.google.gms:google-services:4.4.0") // ✅ MANTENER TAMBIÉN AQUÍ
+        
+        // CORRECCIÓN: Definimos la versión de Kotlin directamente (1.8.20)
+        // Esto resuelve el error de 'Unresolved reference: ext' y moderniza la compilación.
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
+        
+        // Plugin de Google Services
+        classpath("com.google.gms:google-services:4.3.15")
     }
 }
 
@@ -22,12 +29,16 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+// ⬇️ CORRECCIÓN: Usamos 'file(...)' para asignar una ruta (tipo File)
+rootProject.buildDir = file("../build") 
+
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    // ⬇️ CORRECCIÓN: Usamos 'file(...)' en la interpolación de strings para la ruta
+    project.buildDir = file("${rootProject.buildDir}/${project.name}")
 }
 subprojects {
-    project.evaluationDependsOn(':app')
+    // ⬇️ CORRECCIÓN: Usamos comillas dobles para el String ":app"
+    project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete::class) {

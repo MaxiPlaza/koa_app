@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'routine_model.dart';
 
 class ChildModel {
   final String id;
@@ -12,6 +13,7 @@ class ChildModel {
   final ChildSettings settings;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<RoutineModel> routines;
 
   ChildModel({
     required this.id,
@@ -24,6 +26,7 @@ class ChildModel {
     required this.progress,
     required this.settings,
     required this.createdAt,
+    required this.routines,
     required this.updatedAt,
   });
 
@@ -40,6 +43,10 @@ class ChildModel {
       settings: ChildSettings.fromMap(map['settings'] ?? {}),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: (map['updatedAt'] as Timestamp).toDate(),
+      routines: (map['routines'] as List<dynamic>?)
+              ?.map((r) => RoutineModel.fromMap(r as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -56,13 +63,44 @@ class ChildModel {
       'settings': settings.toMap(),
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'routines': routines.map((r) => r.toMap()).toList(),
     };
+  }
+
+  ChildModel copyWith({
+    String? id,
+    String? name,
+    int? age,
+    String? syndrome,
+    String? learningStyle,
+    String? parentId,
+    List<String>? professionalIds,
+    ChildProgress? progress,
+    ChildSettings? settings,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<RoutineModel>? routines,
+  }) {
+    return ChildModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      age: age ?? this.age,
+      syndrome: syndrome ?? this.syndrome,
+      learningStyle: learningStyle ?? this.learningStyle,
+      parentId: parentId ?? this.parentId,
+      professionalIds: professionalIds ?? this.professionalIds,
+      progress: progress ?? this.progress,
+      settings: settings ?? this.settings,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      routines: routines ?? this.routines,
+    );
   }
 }
 
 class ChildProgress {
-  final Map<String, double> skillLevels; // matematica: 0.8, lenguaje: 0.6
-  final int totalPlayTime; // en minutos
+  final Map<String, double> skillLevels;
+  final int totalPlayTime; // minutos
   final int totalStars;
   final DateTime lastSession;
   final List<Session> recentSessions;
@@ -76,14 +114,21 @@ class ChildProgress {
   });
 
   factory ChildProgress.fromMap(Map<String, dynamic> map) {
+    final skillLevelsMap = Map<String, dynamic>.from(map['skillLevels'] ?? {});
+    final List<Session> sessions = (map['recentSessions'] as List<dynamic>?)
+            ?.map((s) => Session.fromMap(s as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     return ChildProgress(
-      skillLevels: Map<String, double>.from(map['skillLevels'] ?? {}),
+      skillLevels:
+          skillLevelsMap.map((k, v) => MapEntry(k, (v as num).toDouble())),
       totalPlayTime: map['totalPlayTime'] ?? 0,
       totalStars: map['totalStars'] ?? 0,
-      lastSession: (map['lastSession'] as Timestamp).toDate(),
-      recentSessions: List<Session>.from(
-        (map['recentSessions'] ?? []).map((x) => Session.fromMap(x)),
-      ),
+      lastSession: map['lastSession'] != null
+          ? (map['lastSession'] as Timestamp).toDate()
+          : DateTime.now(),
+      recentSessions: sessions,
     );
   }
 
@@ -93,47 +138,59 @@ class ChildProgress {
       'totalPlayTime': totalPlayTime,
       'totalStars': totalStars,
       'lastSession': Timestamp.fromDate(lastSession),
-      'recentSessions': recentSessions.map((x) => x.toMap()).toList(),
+      'recentSessions': recentSessions.map((s) => s.toMap()).toList(),
     };
   }
 }
 
 class ChildSettings {
-  final String difficultyLevel;
-  final List<String> focusAreas;
-  final double sensitivity;
-  final String feedbackType;
+  final bool isDyslexicFont;
+  final String feedbackType; // 'visual', 'auditory', 'mixed'
   final bool reduceAnimations;
   final bool disableLoudSounds;
+  // --- CAMPOS AÑADIDOS PARA CORREGIR LOS ERRORES ---
+  final String difficultyLevel; // 'easy', 'medium', 'hard'
+  final double sensitivity; // 0.0 to 1.0, para ajuste de estímulos
+  final List<String> focusAreas; // Ej: ['attention', 'emotions', 'motor']
+  // --------------------------------------------------
 
   ChildSettings({
-    this.difficultyLevel = 'medium',
-    this.focusAreas = const [],
-    this.sensitivity = 0.5,
+    this.isDyslexicFont = false,
     this.feedbackType = 'visual',
     this.reduceAnimations = false,
     this.disableLoudSounds = false,
+    // --- NUEVOS CAMPOS EN CONSTRUCTOR ---
+    this.difficultyLevel = 'easy',
+    this.sensitivity = 0.5,
+    this.focusAreas = const [],
+    // ------------------------------------
   });
 
   factory ChildSettings.fromMap(Map<String, dynamic> map) {
     return ChildSettings(
-      difficultyLevel: map['difficultyLevel'] ?? 'medium',
-      focusAreas: List<String>.from(map['focusAreas'] ?? []),
-      sensitivity: (map['sensitivity'] ?? 0.5).toDouble(),
+      isDyslexicFont: map['isDyslexicFont'] ?? false,
       feedbackType: map['feedbackType'] ?? 'visual',
       reduceAnimations: map['reduceAnimations'] ?? false,
       disableLoudSounds: map['disableLoudSounds'] ?? false,
+      // --- NUEVOS CAMPOS EN fromMap ---
+      difficultyLevel: map['difficultyLevel'] ?? 'easy',
+      sensitivity: (map['sensitivity'] ?? 0.5).toDouble(),
+      focusAreas: List<String>.from(map['focusAreas'] ?? []),
+      // ---------------------------------
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'difficultyLevel': difficultyLevel,
-      'focusAreas': focusAreas,
-      'sensitivity': sensitivity,
+      'isDyslexicFont': isDyslexicFont,
       'feedbackType': feedbackType,
       'reduceAnimations': reduceAnimations,
       'disableLoudSounds': disableLoudSounds,
+      // --- NUEVOS CAMPOS EN toMap ---
+      'difficultyLevel': difficultyLevel,
+      'sensitivity': sensitivity,
+      'focusAreas': focusAreas,
+      // ------------------------------
     };
   }
 }

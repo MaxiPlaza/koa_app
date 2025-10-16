@@ -2,9 +2,9 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' hide launchUrl;
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class MercadoPagoService {
   static const String _baseUrl = 'https://api.mercadopago.com';
@@ -155,8 +155,9 @@ class MercadoPagoService {
       try {
         print('🔄 Intentando fallback con url_launcher...');
 
-        if (await canLaunchUrl(Uri.parse(initPoint))) {
-          await launchUrl(Uri.parse(initPoint));
+        if (await url_launcher.canLaunchUrl(Uri.parse(initPoint))) {
+          // ✨ CORRECCIÓN: Usar el prefijo 'url_launcher'
+          await url_launcher.launchUrl(Uri.parse(initPoint));
         } else {
           throw Exception('No se pudo abrir la URL');
         }

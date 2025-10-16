@@ -810,6 +810,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
         settings: ChildSettings(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        routines: [],
       ),
     ];
   }

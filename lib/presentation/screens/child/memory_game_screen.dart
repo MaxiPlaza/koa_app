@@ -169,7 +169,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
 
   // ✅ Actualizado para incluir bonus por dificultad
   int _calculateScore() {
-    final baseScore = 1000;
+    const baseScore = 1000;
     final movePenalty = _moves * 10;
     final timeBonus =
         (300 - DateTime.now().difference(_startTime).inSeconds) * 2;
@@ -191,7 +191,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -333,7 +333,7 @@ class MemoryCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: card.isMatched
-              ? Colors.green.withOpacity(0.3)
+              ? Colors.green.withValues(alpha: 0.3)
               : card.isFlipped
                   ? Colors.white
                   : Theme.of(context).colorScheme.primary,
@@ -343,7 +343,7 @@ class MemoryCardWidget extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -354,7 +354,8 @@ class MemoryCardWidget extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             child: card.isFlipped || card.isMatched
                 ? Text(card.emotion, style: const TextStyle(fontSize: 24))
-                : Icon(Icons.question_mark, color: Colors.white, size: 24),
+                : const Icon(Icons.question_mark,
+                    color: Colors.white, size: 24),
           ),
         ),
       ),

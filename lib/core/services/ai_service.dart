@@ -217,7 +217,6 @@ Historia:
           Content.system(systemInstruction), // Uso correcto
           Content.text(prompt)
         ],
-        config: config,
         // Se pasa el config directamente al método.
       );
 
@@ -354,7 +353,6 @@ Formato de Respuesta (ESTRICTAMENTE JSON, sin texto explicativo):
           Content.system(systemInstruction), // Uso correcto
           Content.text(prompt)
         ],
-        config: config,
         // Se pasa el config directamente al método.
       );
 

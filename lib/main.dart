@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-
+import 'package:koa_app/data/models/routine_model.dart';
 // Providers
 import 'package:koa_app/presentation/providers/theme_provider.dart';
 import 'package:koa_app/presentation/providers/auth_provider.dart';
@@ -43,6 +43,7 @@ import 'package:koa_app/presentation/screens/subscription/subscription_screen.da
 // Services
 import 'package:koa_app/core/services/mercado_pago_service.dart';
 import 'package:koa_app/core/services/payment_service.dart';
+import 'package:koa_app/data/repositories/routine_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,7 +87,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChildProvider()),
         ChangeNotifierProvider(create: (_) => AIProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
-        ChangeNotifierProvider(create: (_) => RoutineProvider()),
+        ChangeNotifierProvider(
+            create: (_) => RoutineProvider(RoutineRepositoryImpl())),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -111,8 +113,31 @@ class MyApp extends StatelessWidget {
               '/emotional_game': (context) => const EmotionalGameScreen(),
               '/pattern_game': (context) => const PatternGameScreen(),
               '/child_routines': (context) => const RoutinesScreen(),
-              '/routine_detail': (context) => const RoutineDetailScreen(),
-              '/add_edit_routine': (context) => const AddEditRoutineScreen(),
+              '/routine_detail': (context) {
+                // 1. Obtener los argumentos. Se asume que se pasa directamente el RoutineModel.
+                final routine =
+                    ModalRoute.of(context)!.settings.arguments as RoutineModel;
+
+                // 2. Crear la pantalla, pasando el argumento requerido.
+                return RoutineDetailScreen(routine: routine);
+              },
+              '/add_edit_routine': (context) {
+                // 1. Obtener los argumentos como un Map.
+                final args = ModalRoute.of(context)!.settings.arguments
+                    as Map<String, dynamic>?;
+
+                // 2. Extraer los argumentos. Usamos '!' si es obligatorio.
+                final String childId = args!['childId'] as String;
+                final RoutineModel? routine = args['routine'] as RoutineModel?;
+
+                // NOTA: Los errores como 'routineId', 'routineName', 'isEditing'
+                // provienen de intentar pasarlos en el Navigator.pushNamed.
+                // La pantalla solo necesita childId y routine. Al usar este Map,
+                // esos parámetros se ignoran si no los define la pantalla.
+
+                // 3. Crear la pantalla, pasando los argumentos.
+                return AddEditRoutineScreen(childId: childId, routine: routine);
+              },
 
               // 👨‍👩‍👧‍👦 RUTAS PARA PADRES
               '/parent_dashboard': (context) => const ParentDashboard(),
@@ -204,13 +229,15 @@ class MyApp extends StatelessWidget {
 
               // ... resto del código de onGenerateRoute (igual que antes)
               // Manejar rutas con parámetros existentes
+              // ✅ CÓDIGO CORREGIDO para /routine_detail
               if (settings.name == '/routine_detail' &&
                   settings.arguments != null) {
-                final arguments = settings.arguments as Map<String, dynamic>;
+                // Asume que el argumento pasado es directamente una instancia de RoutineModel
+                final routine = settings.arguments as RoutineModel;
+
                 return MaterialPageRoute(
                   builder: (context) => RoutineDetailScreen(
-                    routineId: arguments['routineId'],
-                    routineName: arguments['routineName'],
+                    routine: routine, // ✅ Se pasa el objeto RoutineModel
                   ),
                 );
               }
@@ -218,10 +245,23 @@ class MyApp extends StatelessWidget {
               if (settings.name == '/add_edit_routine' &&
                   settings.arguments != null) {
                 final arguments = settings.arguments as Map<String, dynamic>;
+
+                // Asegurarse de que 'childId' es un String (es obligatorio)
+                final String childId = arguments['childId'] as String;
+
+                // 'routine' es opcional, puede ser nulo
+                final RoutineModel? routine =
+                    arguments['routine'] as RoutineModel?;
+
                 return MaterialPageRoute(
                   builder: (context) => AddEditRoutineScreen(
-                    routine: arguments['routine'],
-                    isEditing: arguments['isEditing'] ?? false,
+                    // ✅ Solución 1: Añadir childId obligatorio
+                    childId: childId,
+
+                    // ✅ Solución 2: Usar solo el parámetro 'routine' que sí existe
+                    routine: routine,
+
+                    // ❌ Se ELIMINA el parámetro 'isEditing'
                   ),
                 );
               }
@@ -229,10 +269,16 @@ class MyApp extends StatelessWidget {
               if (settings.name == '/child_progress' &&
                   settings.arguments != null) {
                 final arguments = settings.arguments as Map<String, dynamic>;
+
+                // Extrae childId, ya que ChildProgressScreen solo acepta este parámetro
+                final String? childId = arguments['childId'] as String?;
+
                 return MaterialPageRoute(
                   builder: (context) => ChildProgressScreen(
-                    childId: arguments['childId'],
-                    childName: arguments['childName'],
+                    // ✅ Solución: Pasar únicamente childId
+                    childId: childId,
+
+                    // ❌ Se ELIMINA el parámetro 'childName'
                   ),
                 );
               }
@@ -416,10 +462,8 @@ class _AppScrollBehavior extends ScrollBehavior {
         : const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
-  @override
   Duration get fadeDuration =>
       reduceAnimations ? Duration.zero : const Duration(milliseconds: 200);
-  @override
   Duration get transitionDuration =>
       reduceAnimations ? Duration.zero : const Duration(milliseconds: 200);
 }
@@ -431,7 +475,9 @@ class AppNavigator {
       navigatorKey.currentState!.pushNamed<T>(routeName, arguments: arguments);
   static void pop<T>([T? result]) => navigatorKey.currentState!.pop(result);
   static Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) =>
-      navigatorKey.currentState!.pushReplacementNamed<T>(
+      // ✅ SOLUCIÓN 1: Usar dos tipos genéricos: <T, TO>
+      // ✅ SOLUCIÓN 2: Eliminar el tipo genérico si no lo usas
+      navigatorKey.currentState!.pushReplacementNamed(
         routeName,
         arguments: arguments,
       );
@@ -445,12 +491,15 @@ class AppNavigator {
         arguments: arguments,
       );
 
-  static Future<T?> showDialog<T>({
+  static Future<T?> showAppDialog<T>({
+    // 1. NOMBRE CAMBIADO para evitar conflicto
     required Widget Function(BuildContext) builder,
     bool barrierDismissible = true,
   }) {
+    // 2. Ahora, esta llamada (showDialog) resuelve correctamente al método global de Flutter.
     return showDialog<T>(
-      context: navigatorKey.currentContext!,
+      context: navigatorKey
+          .currentContext!, // ✅ Ahora el compilador acepta 'context:'
       builder: builder,
       barrierDismissible: barrierDismissible,
     );
@@ -462,7 +511,8 @@ extension NavigationExtension on BuildContext {
       Navigator.pushNamed<T>(this, routeName, arguments: arguments);
   void pop<T>([T? result]) => Navigator.pop(this, result);
   Future<T?> pushReplacement<T>(String routeName, {Object? arguments}) =>
-      Navigator.pushReplacementNamed<T>(this, routeName, arguments: arguments);
+      Navigator.pushReplacementNamed<T, void>(this, routeName,
+          arguments: arguments);
   Future<T?> pushAndRemoveUntil<T>(String routeName, {Object? arguments}) =>
       Navigator.pushNamedAndRemoveUntil<T>(
         this,

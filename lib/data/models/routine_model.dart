@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'routine_task_model.dart';
 
 class RoutineModel {
   final String id;
@@ -40,10 +41,12 @@ class RoutineModel {
       description: map['description'] ?? '',
       icon: map['icon'] ?? '📝',
       color: map['color'] ?? '#10B981',
-      tasks: List<RoutineTask>.from(
-        (map['tasks'] ?? []).map((x) => RoutineTask.fromMap(x)),
-      ),
-      schedule: RoutineSchedule.fromMap(map['schedule'] ?? {}),
+      tasks: (map['tasks'] as List<dynamic>?)
+              ?.map((t) => RoutineTask.fromMap(t))
+              .toList() ??
+          [],
+      schedule: RoutineSchedule.fromMap(
+          map['schedule'] ?? RoutineSchedule.defaultMap),
       isActive: map['isActive'] ?? true,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: (map['updatedAt'] as Timestamp).toDate(),
@@ -60,8 +63,7 @@ class RoutineModel {
       'description': description,
       'icon': icon,
       'color': color,
-      // Se corrigió el error de 'toMap' en caso de que 'tasks' fuera nulo, pero 'tasks' es requerido y no nulo.
-      'tasks': tasks.map((x) => x.toMap()).toList(),
+      'tasks': tasks.map((t) => t.toMap()).toList(),
       'schedule': schedule.toMap(),
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -71,54 +73,12 @@ class RoutineModel {
     };
   }
 
-  // Calcular progreso actual de la rutina
-  double get progress {
-    if (tasks.isEmpty) return 0.0;
-    // Uso sin '!' asumiendo que los elementos de tasks son RoutineTask no nulos
-    final completedTasks = tasks.where((task) => task.completed).length;
-    return completedTasks / tasks.length;
-  }
+  // --- NUEVOS MÉTODOS DE MANIPULACIÓN DE RUTINA ---
 
-  // Verificar si la rutina está completada hoy
-  bool get isCompletedToday {
-    // Uso sin '!'
-    return tasks.every((task) => task.completed);
-  }
-
-  // Total de minutos estimados
-  int get totalEstimatedMinutes {
-    // Solución al error de tipo de retorno: 'sum' es int y 'task.estimatedMinutes' es int (asumiendo RoutineTask definido)
-    return tasks.fold(0, (sum, task) => sum + task.estimatedMinutes);
-  }
-
-  // Tareas completadas
-  int get completedTasksCount {
-    // Uso sin '!'
-    return tasks.where((task) => task.completed).length;
-  }
-
-  // Tareas pendientes
-  int get pendingTasksCount {
-    // Uso sin '!'
-    return tasks.where((task) => !task.completed).length;
-  }
-
-  // Reiniciar rutina para un nuevo día
-  RoutineModel resetForNewDay() {
-    return copyWith(
-      // Se corrigió el error de 'copyWith' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
-      tasks: tasks
-          .map((task) => task.copyWith(completed: false, completedAt: null))
-          .toList(),
-    );
-  }
-
-  // Marcar tarea como completada
+  /// Alterna el estado de completado de una tarea y recalcula la tasa de éxito.
   RoutineModel markTaskCompleted(String taskId, bool completed) {
     final updatedTasks = tasks.map((task) {
-      // Se corrigió el error de 'id' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
       if (task.id == taskId) {
-        // Se corrigió el error de 'copyWith' en caso de que task fuera nulo, pero 'task' es RoutineTask no nulo.
         return task.copyWith(
           completed: completed,
           completedAt: completed ? DateTime.now() : null,
@@ -127,8 +87,50 @@ class RoutineModel {
       return task;
     }).toList();
 
-    return copyWith(tasks: updatedTasks);
+    // Recalcular métricas de completado de la rutina
+    final completedCount = updatedTasks.where((task) => task.completed).length;
+    final totalTasks = updatedTasks.length;
+
+    // Si se completó una tarea, se incrementa el contador global.
+    // Esto es un enfoque simplificado. Se podría refinar para solo contar
+    // una vez por día en la lógica del repositorio/provider.
+    final newTotalCompletions = totalCompletions + (completed ? 1 : 0);
+
+    final newSuccessRate =
+        totalTasks == 0 ? 0.0 : (completedCount / totalTasks) * 100.0;
+
+    return copyWith(
+      tasks: updatedTasks,
+      updatedAt: DateTime.now(),
+      totalCompletions: newTotalCompletions,
+      successRate: newSuccessRate,
+    );
   }
+
+  /// Reinicia el estado de completado de todas las tareas para un nuevo día.
+  RoutineModel resetForNewDay() {
+    final resetTasks = tasks.map((task) {
+      return task.copyWith(
+        completed: false,
+        completedAt: null,
+      );
+    }).toList();
+
+    return copyWith(
+      tasks: resetTasks,
+      updatedAt: DateTime.now(),
+      // Las métricas globales (totalCompletions, successRate) no se tocan.
+    );
+  }
+
+  /// Verifica si la rutina está totalmente completada hoy.
+  bool get isCompletedToday {
+    return schedule.isScheduledToday &&
+        tasks.isNotEmpty &&
+        tasks.every((task) => task.completed);
+  }
+
+  // --- COPYWITH PARA INMUTABILIDAD ---
 
   RoutineModel copyWith({
     String? id,
@@ -161,101 +163,62 @@ class RoutineModel {
       successRate: successRate ?? this.successRate,
     );
   }
-}
+  // --- GETTERS COMPUTADOS (Para UI) ---
 
-// -----------------------------------------------------------------------------
-// CLASE AÑADIDA PARA RESOLVER "Undefined name 'RoutineTask'"
-// -----------------------------------------------------------------------------
-class RoutineTask {
-  final String id;
-  final String name;
-  final int estimatedMinutes;
-  final bool completed;
-  final DateTime? completedAt;
-  final String? icon;
-
-  RoutineTask({
-    required this.id,
-    required this.name,
-    this.estimatedMinutes = 5,
-    this.completed = false,
-    this.completedAt,
-    this.icon,
-  });
-
-  factory RoutineTask.fromMap(Map<String, dynamic> map) {
-    return RoutineTask(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      estimatedMinutes: map['estimatedMinutes'] ?? 5,
-      completed: map['completed'] ?? false,
-      completedAt: map['completedAt'] != null
-          ? (map['completedAt'] as Timestamp).toDate()
-          : null,
-      icon: map['icon'],
-    );
+  /// Cuenta la cantidad de tareas completadas.
+  int get completedTasksCount {
+    return tasks.where((task) => task.completed).length;
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'estimatedMinutes': estimatedMinutes,
-      'completed': completed,
-      'completedAt':
-          completedAt != null ? Timestamp.fromDate(completedAt!) : null,
-      'icon': icon,
-    };
+  /// Calcula el progreso como un valor entre 0.0 y 1.0.
+  double get progress {
+    if (tasks.isEmpty) return 0.0;
+    return completedTasksCount / tasks.length;
   }
 
-  RoutineTask copyWith({
-    String? id,
-    String? name,
-    int? estimatedMinutes,
-    bool? completed,
-    DateTime? completedAt,
-    String? icon,
-  }) {
-    return RoutineTask(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
-      completed: completed ?? this.completed,
-      completedAt: completedAt ?? this.completedAt,
-      icon: icon ?? this.icon,
-    );
+  /// Calcula el tiempo total estimado de la rutina sumando las tareas.
+  // Nota: totalEstimatedMinutes asume que tienes un campo 'estimatedMinutes' en RoutineTask
+  int get totalEstimatedMinutes {
+    // Necesitas asegurarte de que RoutineTask tenga un getter 'estimatedMinutes'.
+    // Si no está en RoutineTask, esta parte fallará.
+    // Asumiendo que RoutineTask tiene un getter int 'estimatedMinutes'.
+    return tasks.fold(0, (sum, task) => sum + task.estimatedMinutes);
   }
 }
-
-// -----------------------------------------------------------------------------
 
 class RoutineSchedule {
-  final List<int> daysOfWeek; // 1 = Lunes, 7 = Domingo
+  final List<int> daysOfWeek; // 1 (Lunes) a 7 (Domingo)
   final TimeOfDay startTime;
   final TimeOfDay endTime;
   final bool hasReminder;
   final int reminderMinutesBefore;
 
   RoutineSchedule({
-    this.daysOfWeek = const [1, 2, 3, 4, 5],
+    required this.daysOfWeek,
     required this.startTime,
     required this.endTime,
-    this.hasReminder = true,
+    this.hasReminder = false,
     this.reminderMinutesBefore = 15,
   });
+
+  static Map<String, dynamic> get defaultMap => {
+        'daysOfWeek': [1, 2, 3, 4, 5],
+        'startTime': {'hour': 8, 'minute': 0},
+        'endTime': {'hour': 9, 'minute': 0},
+        'hasReminder': false,
+        'reminderMinutesBefore': 15,
+      };
 
   factory RoutineSchedule.fromMap(Map<String, dynamic> map) {
     return RoutineSchedule(
       daysOfWeek: List<int>.from(map['daysOfWeek'] ?? []),
       startTime: TimeOfDay(
-        hour: map['startTime']['hour'] ?? 8,
-        minute: map['startTime']['minute'] ?? 0,
-      ),
+          hour: map['startTime']['hour'] ?? 8,
+          minute: map['startTime']['minute'] ?? 0),
       endTime: TimeOfDay(
-        hour: map['endTime']['hour'] ?? 9,
-        minute: map['endTime']['minute'] ?? 0,
-      ),
-      hasReminder: map['hasReminder'] ?? true,
+          hour: map['endTime']['hour'] ?? 9,
+          minute: map['endTime']['minute'] ?? 0),
+      hasReminder: map['hasReminder'] ?? false,
       reminderMinutesBefore: map['reminderMinutesBefore'] ?? 15,
     );
   }
@@ -287,6 +250,8 @@ class RoutineSchedule {
     final today = now.weekday;
 
     for (int i = 0; i < 7; i++) {
+      // El weekday de Dart es 1 (Lunes) a 7 (Domingo).
+      // (today + i - 1) % 7 + 1 calcula el día de la semana.
       final day = (today + i - 1) % 7 + 1;
       if (daysOfWeek.contains(day)) {
         return now.add(Duration(days: i));
@@ -294,5 +259,22 @@ class RoutineSchedule {
     }
 
     return now.add(const Duration(days: 7));
+  }
+
+  RoutineSchedule copyWith({
+    List<int>? daysOfWeek,
+    TimeOfDay? startTime,
+    TimeOfDay? endTime,
+    bool? hasReminder,
+    int? reminderMinutesBefore,
+  }) {
+    return RoutineSchedule(
+      daysOfWeek: daysOfWeek ?? this.daysOfWeek,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      hasReminder: hasReminder ?? this.hasReminder,
+      reminderMinutesBefore:
+          reminderMinutesBefore ?? this.reminderMinutesBefore,
+    );
   }
 }

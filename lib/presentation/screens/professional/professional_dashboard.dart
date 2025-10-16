@@ -83,17 +83,17 @@ class ProfessionalDashboard extends StatelessWidget {
                   Text(
                     'Bienvenido/a Profesional',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Monitorea el progreso de tus alumnos y ajusta sus terapias',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                   ),
                 ],
               ),
@@ -111,9 +111,8 @@ class ProfessionalDashboard extends StatelessWidget {
           (s) => DateTime.now().difference(s.progress.lastSession).inDays <= 7,
         )
         .length;
-    final needAttention = students
-        .where((s) => _calculateOverallProgress(s) < 0.4)
-        .length;
+    final needAttention =
+        students.where((s) => _calculateOverallProgress(s) < 0.4).length;
 
     return Row(
       children: [
@@ -161,7 +160,7 @@ class ProfessionalDashboard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -178,10 +177,10 @@ class ProfessionalDashboard extends StatelessWidget {
                 title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.6),
-                ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
               ),
             ],
           ),
@@ -240,7 +239,10 @@ class ProfessionalDashboard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 32),
@@ -272,7 +274,7 @@ class ProfessionalDashboard extends StatelessWidget {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -320,8 +322,11 @@ class ProfessionalDashboard extends StatelessWidget {
             Text(
               'Última sesión: $lastSession',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
             ),
           ],
         ),
@@ -407,6 +412,7 @@ class ProfessionalDashboard extends StatelessWidget {
         settings: ChildSettings(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        routines: [],
       ),
       ChildModel(
         id: '2',
@@ -429,6 +435,7 @@ class ProfessionalDashboard extends StatelessWidget {
         settings: ChildSettings(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        routines: [],
       ),
       ChildModel(
         id: '3',
@@ -451,6 +458,7 @@ class ProfessionalDashboard extends StatelessWidget {
         settings: ChildSettings(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        routines: [],
       ),
     ];
   }

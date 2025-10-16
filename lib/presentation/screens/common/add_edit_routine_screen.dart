@@ -4,6 +4,7 @@ import 'package:koa_app/data/models/routine_model.dart';
 import 'package:koa_app/presentation/providers/routine_provider.dart';
 import 'package:koa_app/presentation/widgets/common/kova_mascot.dart';
 import 'package:koa_app/presentation/widgets/common/custom_button.dart';
+import "package:koa_app/data/models/routine_task_model.dart";
 
 class AddEditRoutineScreen extends StatefulWidget {
   final String childId;
@@ -102,11 +103,14 @@ class _AddEditRoutineScreenState extends State<AddEditRoutineScreen> {
       try {
         if (widget.routine == null) {
           await routineProvider.addRoutine(routine);
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Rutina creada exitosamente')),
           );
         } else {
           await routineProvider.updateRoutine(routine);
+          // ignore: use_build_context_synchronously
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Rutina actualizada exitosamente')),
           );

@@ -9,13 +9,11 @@ import 'package:koa_app/data/models/child_model.dart';
 import 'package:koa_app/data/models/user_model.dart';
 import 'package:koa_app/data/models/report_model.dart';
 import 'package:koa_app/core/services/ai_service.dart' as ai;
-import 'package:koa_app/core/services/local_storage.dart';
 import 'package:koa_app/data/models/game_session.dart';
 import 'package:flutter/material.dart';
 
 class PdfService {
   final ai.AIService _aiService = ai.AIService();
-  final LocalStorage _localStorage = LocalStorage();
 
   // 🎯 Generar reporte completo
   Future<ReportModel> generateReport({
@@ -34,6 +32,18 @@ class PdfService {
 
       // Generar análisis IA
       final aiAnalysis = await _generateAIAnalysis(child, reportData);
+
+      // Convertir las recomendaciones de ai.AIRecommendation a AIRecommendation (report_model)
+      final reportRecommendations = aiAnalysis.recommendations.map((aiRec) {
+        return AIRecommendation(
+          type: _aiRecommendationTypeToString(aiRec.type),
+          priority: _aiPriorityToString(aiRec.priority),
+          title: aiRec.title,
+          description: aiRec.description,
+          suggestedActivities: aiRec.suggestedActivities,
+          reason: aiRec.reason,
+        );
+      }).toList();
 
       // Generar PDF
       final pdfFile = await _createPdfDocument(
@@ -60,7 +70,7 @@ class PdfService {
         periodEnd: periodEnd,
         data: reportData,
         analysis: aiAnalysis.analysis,
-        recommendations: aiAnalysis.recommendations,
+        recommendations: reportRecommendations,
         pdfUrl: pdfFile.path,
         createdAt: DateTime.now(),
         isSynced: false,
@@ -72,8 +82,41 @@ class PdfService {
     }
   }
 
-  // CORRECCIÓN 16: Método _buildActivitiesSummary
-  pw.Widget _buildActivitiesSummary(Map<String, int> topActivities) {
+  // Métodos de conversión entre los tipos AIRecommendation
+  String _aiRecommendationTypeToString(ai.RecommendationType type) {
+    switch (type) {
+      case ai.RecommendationType.memory:
+        return 'memory';
+      case ai.RecommendationType.emotional:
+        return 'emotional';
+      case ai.RecommendationType.cognitive:
+        return 'cognitive';
+      case ai.RecommendationType.social:
+        return 'social';
+      case ai.RecommendationType.learningStyle:
+        return 'learningStyle';
+      case ai.RecommendationType.balance:
+        return 'balance';
+      default:
+        return 'cognitive';
+    }
+  }
+
+  String _aiPriorityToString(ai.Priority priority) {
+    switch (priority) {
+      case ai.Priority.high:
+        return 'high';
+      case ai.Priority.medium:
+        return 'medium';
+      case ai.Priority.low:
+        return 'low';
+      default:
+        return 'medium';
+    }
+  }
+
+  // CORRECCIÓN 16: Método _buildActivitiesSummary - FIXED
+  pw.Widget _buildActivitiesSummary(List<ActivitySummary> topActivities) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -88,8 +131,9 @@ class PdfService {
         pw.SizedBox(height: 10),
         if (topActivities.isEmpty)
           pw.Text('No hay datos de actividades para este período.'),
-        ...topActivities.entries
-            .map((entry) => pw.Text('- ${entry.key}: ${entry.value} sesiones'))
+        ...topActivities
+            .map((activity) => pw.Text(
+                '- ${activity.activityName}: ${activity.sessions} sesiones'))
             .toList(),
       ],
     );
@@ -101,31 +145,26 @@ class PdfService {
     DateTime start,
     DateTime end,
   ) async {
-    // En una implementación real, esto vendría de Firebase/local storage
-    // Por ahora usamos datos de ejemplo basados en el progreso del niño
-
     final skillProgress = child.progress.skillLevels;
-
-    // Calcular métricas adicionales
     final totalPlayTime = child.progress.totalPlayTime;
     final sessionsCompleted = child.progress.recentSessions.length;
     final totalStars = child.progress.totalStars;
 
-    // Calcular tasa de finalización (ejemplo)
+    // Calcular tasa de finalización
     final completedSessions = child.progress.recentSessions
         .where((session) => session.completed == true)
         .length;
     final completionRate =
         sessionsCompleted > 0 ? completedSessions / sessionsCompleted : 0.0;
 
-    // Puntaje de engagement (ejemplo basado en estrellas y tiempo)
+    // Puntaje de engagement
     final engagementScore = _calculateEngagementScore(
       totalPlayTime,
       totalStars,
       sessionsCompleted,
     );
 
-    // Actividades más populares (ejemplo)
+    // Actividades más populares
     final topActivities = _getTopActivities(child.progress.recentSessions);
 
     return ReportData(
@@ -139,17 +178,23 @@ class PdfService {
     );
   }
 
-  // 🧠 Generar análisis con IA
-  Future<({ReportAnalysis analysis, List<AIRecommendation> recommendations})>
+  // 🧠 Generar análisis con IA - FIXED
+  Future<({ReportAnalysis analysis, List<ai.AIRecommendation> recommendations})>
       _generateAIAnalysis(ChildModel child, ReportData data) async {
     try {
       // Convertir sesiones a formato que entienda AIService
       final sessions = child.progress.recentSessions.map((session) {
         return GameSession(
+          id: session.activityId ??
+              'unknown_${DateTime.now().millisecondsSinceEpoch}',
+          childId: child.id,
           activityId: session.activityId ?? 'unknown',
-          score: ((session.score ?? 0.0) * 1000)
-              .toInt(), // Convertir a escala similar
-          durationInMinutes: session.duration ?? 0,
+          startTime: session.date ?? DateTime.now(),
+          endTime: (session.date ?? DateTime.now())
+              .add(Duration(minutes: session.duration ?? 0)),
+          score: ((session.score ?? 0.0) * 1000).toInt(),
+          stars: ((session.score ?? 0.0) * 2).toInt(),
+          performance: session.metadata ?? {},
           completed: session.completed ?? false,
         );
       }).toList();
@@ -176,8 +221,8 @@ class PdfService {
 
       return (analysis: analysis, recommendations: recommendations);
     } catch (e) {
-      // Fallback si la IA falla
-      return (
+      // Fallback si la IA falla - FIXED: RecommendationType.general no existe
+      return Future.value((
         analysis: ReportAnalysis(
           strengths: {'potencial': 0.7},
           areasForImprovement: {'desarrollo': 0.3},
@@ -188,16 +233,16 @@ class PdfService {
           overallProgress: 'Progreso constante en el período evaluado.',
         ),
         recommendations: [
-          AIRecommendation(
-            type: 'general',
-            priority: 'medium',
+          ai.AIRecommendation(
+            type: ai.RecommendationType.cognitive,
+            priority: ai.Priority.medium,
             title: 'Continuar con actividades actuales',
             description: 'Mantener el ritmo actual de actividades',
             suggestedActivities: ['memory_1', 'emotional_1'],
             reason: 'Buena respuesta a las actividades actuales',
           ),
         ],
-      );
+      ));
     }
   }
 
@@ -210,12 +255,12 @@ class PdfService {
     required ReportData data,
     required ({
       ReportAnalysis analysis,
-      List<AIRecommendation> recommendations
+      List<ai.AIRecommendation> recommendations
     }) aiData,
   }) async {
     final pdf = pw.Document();
 
-    // Cargar logo KOVA (usaremos un placeholder por ahora)
+    // Cargar logo KOVA
     final Uint8List? kovaLogo = await _loadKovaLogo();
 
     // Página 1: Portada y Resumen Ejecutivo
@@ -505,7 +550,7 @@ class PdfService {
                           ),
                           pw.Container(
                             height: 15,
-                            width: entry.value * 100, // Ancho proporcional
+                            width: entry.value * 100,
                             decoration: pw.BoxDecoration(
                               gradient: pw.LinearGradient(
                                 colors: [
@@ -638,7 +683,7 @@ class PdfService {
   }
 
   // 💡 Construir recomendaciones
-  pw.Widget _buildRecommendations(List<AIRecommendation> recommendations) {
+  pw.Widget _buildRecommendations(List<ai.AIRecommendation> recommendations) {
     return pw.Container(
       width: double.infinity,
       margin: const pw.EdgeInsets.only(bottom: 20),
@@ -680,11 +725,13 @@ class PdfService {
                           vertical: 4,
                         ),
                         decoration: pw.BoxDecoration(
-                          color: _getPriorityColor(recommendation.priority),
+                          color: _getPriorityColor(
+                              _aiPriorityToString(recommendation.priority)),
                           borderRadius: pw.BorderRadius.circular(12),
                         ),
                         child: pw.Text(
-                          recommendation.priority.toUpperCase(),
+                          _aiPriorityToString(recommendation.priority)
+                              .toUpperCase(),
                           style: pw.TextStyle(
                             fontSize: 8,
                             color: PdfColors.white,
@@ -745,9 +792,6 @@ class PdfService {
             ),
           ),
           pw.SizedBox(height: 15),
-
-          // Aquí irían los gráficos reales usando pw.Chart
-          // Por ahora usamos representaciones simples
           _buildSimpleChart(data.skillProgress),
           pw.SizedBox(height: 20),
           _buildActivitiesChart(data.topActivities),
@@ -873,7 +917,7 @@ class PdfService {
 
   // ========== MÉTODOS AUXILIARES ==========
 
-  pw.Widget _buildInfoRow(String label, String value, pw.IconData icon) {
+  pw.Widget _buildInfoRow(String label, String value) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
       child: pw.Row(
@@ -1020,8 +1064,6 @@ class PdfService {
 
   Future<Uint8List?> _loadKovaLogo() async {
     try {
-      // En una implementación real, cargaríamos el logo de KOVA
-      // Por ahora retornamos null y usamos texto
       return null;
     } catch (e) {
       return null;
@@ -1098,21 +1140,24 @@ class PdfService {
     final activityCompletions = <String, int>{};
 
     for (final session in sessions) {
-      activityCount[session.activityId] =
-          (activityCount[session.activityId] ?? 0) + 1;
-      activityScores[session.activityId] =
-          (activityScores[session.activityId] ?? 0.0) + session.score;
-      if (session.completed) {
-        activityCompletions[session.activityId] =
-            (activityCompletions[session.activityId] ?? 0) + 1;
+      final activityId = session.activityId ?? 'unknown';
+      activityCount[activityId] = (activityCount[activityId] ?? 0) + 1;
+      activityScores[activityId] =
+          (activityScores[activityId] ?? 0.0) + (session.score ?? 0.0);
+      if (session.completed == true) {
+        activityCompletions[activityId] =
+            (activityCompletions[activityId] ?? 0) + 1;
       }
     }
 
     return activityCount.entries.map((entry) {
       final activityId = entry.key;
       final sessionsCount = entry.value;
-      final avgScore = activityScores[activityId]! / sessionsCount;
-      final completionRate = activityCompletions[activityId]! / sessionsCount;
+      final totalScore = activityScores[activityId] ?? 0.0;
+      final avgScore = sessionsCount > 0 ? totalScore / sessionsCount : 0.0;
+      final completionCount = activityCompletions[activityId] ?? 0;
+      final completionRate =
+          sessionsCount > 0 ? completionCount / sessionsCount : 0.0;
 
       return ActivitySummary(
         activityId: activityId,
@@ -1123,7 +1168,7 @@ class PdfService {
       );
     }).toList()
       ..sort((a, b) => b.sessions.compareTo(a.sessions))
-      ..take(5);
+      ..take(5).toList();
   }
 
   String _getActivityName(String activityId) {

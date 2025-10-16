@@ -92,8 +92,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final report = await _pdfService.generateReport(
         child: child,
         generatedBy: authProvider.currentUser!,
-        periodStart: result['periodStart'],
-        periodEnd: result['periodEnd'],
+        periodStart: result['periodStart']!,
+        periodEnd: result['periodEnd']!,
       );
 
       await _localStorage.saveReport(report);
@@ -231,12 +231,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _shareReport(ReportModel report) async {
     if (report.pdfUrl == null) {
-      _showSnackBar('Este reporte no tiene un PDF generado');
+      try {
+        // Usamos el método 'shareReport' que ya existe en PdfService
+        await _pdfService.shareReport(report); //
+        if (mounted) {
+          _showSnackBar('Reporte de ${report.childName} compartido.');
+        }
+      } catch (e) {
+        if (mounted) {
+          _showSnackBar('Error al compartir el reporte: ${e.toString()}');
+        }
+      }
+      ;
       return;
     }
-
-    // TODO: Integrar con share_plus para compartir el PDF
-    _showSnackBar('Funcionalidad de compartir próximamente disponible');
   }
 
   void _viewReportDetails(ReportModel report) {
